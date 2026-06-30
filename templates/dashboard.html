@@ -6,16 +6,133 @@ Dashboard
 
 {% block content %}
 
-<h2>
+<div class="container mt-4">
 
-    Welcome {{ request.user.email }}
+    <div class="d-flex justify-content-between align-items-center mb-4">
 
-</h2>
+        <h3>Student Excel Upload</h3>
 
-<a href="{% url 'logout' %}" class="btn btn-danger">
+        <a href="{% url 'logout' %}" class="btn btn-danger">
+            Logout
+        </a>
 
-    Logout
+    </div>
 
-</a>
+    <!-- Upload Form -->
+    <div class="card shadow mb-4">
+
+        <div class="card-header">
+
+            Upload Excel File
+
+        </div>
+
+        <div class="card-body">
+
+            <form method="POST" enctype="multipart/form-data">
+
+                {% csrf_token %}
+
+                <input
+                    type="file"
+                    name="excel_file"
+                    class="form-control"
+                    accept=".xlsx,.xls"
+                    required>
+
+                <button class="btn btn-primary mt-3">
+
+                    Upload
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <!-- Student Table -->
+
+    <div class="card shadow">
+
+        <div class="card-header">
+
+            Student Records
+
+        </div>
+
+        <div class="card-body">
+
+            <table class="table table-bordered table-hover">
+
+                <thead class="table-dark">
+
+                    <tr>
+
+                        <th>Student ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Course</th>
+                        <th>Department</th>
+                        <th>Action</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for student in students %}
+
+                    <tr>
+
+                        <td>{{ student.student_id }}</td>
+                        <td>{{ student.student_name }}</td>
+                        <td>{{ student.email }}</td>
+                        <td>{{ student.course }}</td>
+                        <td>{{ student.department }}</td>
+
+                        <td>
+
+                            <a href="#" class="btn btn-warning btn-sm">
+
+                                Edit
+
+                            </a>
+
+                            <a href="#" class="btn btn-danger btn-sm">
+
+                                Delete
+
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                    {% empty %}
+
+                    <tr>
+
+                        <td colspan="6" class="text-center">
+
+                            No Student Records Found
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
 
 {% endblock %}

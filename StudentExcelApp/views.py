@@ -5,7 +5,7 @@ from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.contrib.auth import authenticate,login,logout
 from django.contrib.auth.decorators import login_required
-
+from .models import *
 
 
 # Create your views.
@@ -81,7 +81,13 @@ def register(request):
 # Dashboard Page View
 @login_required
 def dashboard(request):
-    return render(request,"dashboard.html")
+    students = Student.objects.all().order_by("student_id")
+
+    context = {
+        "students": students
+    }
+
+    return render(request, "dashboard.html", context)
 
 
 def logout_view(request):
