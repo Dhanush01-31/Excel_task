@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Dashboard
+{% endblock %}
+
+{% block content %}
+
+<h2>
+
+    Welcome {{ request.user.email }}
+
+</h2>
+
+<a href="{% url 'logout' %}" class="btn btn-danger">
+
+    Logout
+
+</a>
+
+{% endblock %}

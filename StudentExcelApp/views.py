@@ -3,30 +3,54 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate,login,logout
+from django.contrib.auth.decorators import login_required
 
-# Create your views here.
+
+
+# Create your views.
 def home(request):
     return render(request,'home.html')
 
+
+# Login page View
 def login_page(request):
-    if request.method == "post":
-        username = request.POST.get('email')
-        password = request.POST.get('password')
+    if request.method == "POST":
+        username = request.POST.get("email")
+        password = request.POST.get("password")
 
-    return render(request,"login.html")
+        print("Username:", username)
+        print("Password:", password)
 
+        user = authenticate(
+            request,
+            username=username,
+            password=password
+        )
+
+        
+
+        if user is not None:
+            login(request, user)
+            return redirect("dashboard")
+
+        messages.error(request, "Invalid Email or Password")
+    user = User.objects.get(username = "dhanusharumugam245@gmail.com")
+    print(user.password)
+    return render(request, "login.html")
+
+# Register Page VIew
 def register(request):
     if request.method == "POST":
-        username = request.POST.get('username')
-        password = request>POST.get('password')
+        username = request.POST.get('email')
+        password = request.POST.get('password')
         confirm_password = request.POST.get("confirm_password")
 
         try:
             validate_email(username)
         except ValidationError:
             messages.error(request,"Enter a Valid Email")
-            return redirect(request,'register')
+            return redirect('register')
 
         allowed_domains = (
             '@gmail.com',
@@ -46,13 +70,24 @@ def register(request):
             messages.error(request,"Password Mismatch")
             return redirect('register')
         
-        User.objects.create(
+        User.objects.create_user(
             username=username,
             password=password
         )
         messages.success(request,"Registration Sucessfully")
-        return redirect('register')
+        return redirect('login')
     return render(request,'register.html')
 
+# Dashboard Page View
+@login_required
 def dashboard(request):
     return render(request,"dashboard.html")
+
+
+def logout_view(request):
+
+    logout(request)
+
+    messages.success(request, "Logged out Successfully.")
+
+    return redirect("login")
