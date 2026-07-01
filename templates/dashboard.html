@@ -8,9 +8,11 @@ Dashboard
 
 <div class="container mt-4">
 
+    <!-- Header -->
+
     <div class="d-flex justify-content-between align-items-center mb-4">
 
-        <h3>Student Excel Upload</h3>
+        <h3>Student Excel Upload Dashboard</h3>
 
         <a href="{% url 'logout' %}" class="btn btn-danger">
             Logout
@@ -18,7 +20,8 @@ Dashboard
 
     </div>
 
-    <!-- Upload Form -->
+    <!-- Upload Excel -->
+
     <div class="card shadow mb-4">
 
         <div class="card-header bg-primary text-white">
@@ -33,22 +36,32 @@ Dashboard
 
                 {% csrf_token %}
 
-                <div class="mb-3">
+                <div class="row">
 
-                    <input
-                        type="file"
-                        name="excel_file"
-                        class="form-control"
-                        accept=".xlsx,.xls"
-                        required>
+                    <div class="col-md-9">
+
+                        <input
+                            type="file"
+                            name="excel_file"
+                            class="form-control"
+                            accept=".xlsx,.xls"
+                            required>
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <button
+                            type="submit"
+                            class="btn btn-success w-100">
+
+                            Upload File
+
+                        </button>
+
+                    </div>
 
                 </div>
-
-                <button type="submit" class="btn btn-primary">
-
-                    Upload
-
-                </button>
 
             </form>
 
@@ -56,293 +69,90 @@ Dashboard
 
     </div>
 
-    <!-- Validation Error Table -->
+    <!-- Uploaded Files -->
 
-    {% if validation_errors %}
+    <h4 class="mb-3">
 
-    <div class="card shadow mb-4">
+        My Uploaded Files
 
-        <div class="card-header bg-danger text-white">
+    </h4>
 
-            Validation Errors
+    <div class="row">
 
-        </div>
+        {% for upload in uploads %}
 
-        <div class="card-body">
+        <div class="col-md-4 mb-4">
 
-            <table class="table table-bordered table-hover">
+            <div class="card shadow h-100">
 
-                <thead class="table-danger">
+                <div class="card-body">
 
-                    <tr>
+                    <h5 class="card-title">
 
-                        <th>Excel Row</th>
-
-                        <th>Field</th>
-
-                        <th>Invalid Value</th>
-
-                        <th>Error</th>
-
-                    </tr>
-
-                </thead>
-
-                <tbody>
-
-                    {% for error in validation_errors %}
-
-                    <tr>
-
-                        <td>{{ error.row }}</td>
-
-                        <td>{{ error.field }}</td>
-
-                        <td>{{ error.value }}</td>
-
-                        <td class="text-danger fw-bold">
-
-                            {{ error.error }}
-
-                        </td>
-
-                    </tr>
-
-                    {% endfor %}
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-    </div>
-
-    {% endif %}
-
-    <!-- Student Records -->
-
-    <div class="card shadow">
-
-        <div class="card-header bg-success text-white">
-
-            Student Records
-
-        </div>
-
-        <div class="card-body">
-
-            <table class="table table-bordered table-hover">
-
-                <thead class="table-dark">
-
-                    <tr>
-
-                        <th>Student ID</th>
-
-                        <th>Student Name</th>
-
-                        <th>Email</th>
-
-                        <th>Course</th>
-
-                        <th>Department</th>
-
-                        <th>Action</th>
-
-                    </tr>
-
-                </thead>
-
-                <tbody>
-
-                    {% for student in students %}
-
-                    <tr>
-
-                        <td>{{ student.studentid }}</td>
-
-                        <td>{{ student.studentname }}</td>
-
-                        <td>{{ student.email }}</td>
-
-                        <td>{{ student.course }}</td>
-
-                        <td>{{ student.department }}</td>
-
-                        <td>
-
-                            <button
-    class="btn btn-warning btn-sm"
-    data-bs-toggle="modal"
-    data-bs-target="#editModal{{ student.id }}">
-
-    Edit
-
-</button>
-                           <a
-    href="{% url 'delete_student' student.id %}"
-    class="btn btn-danger btn-sm"
-    onclick="return confirm('Are you sure you want to delete this student?')">
-
-    Delete
-
-</a>
-
-                        </td>
-
-                    </tr>
-
-                    {% empty %}
-
-                    <tr>
-
-                        <td colspan="6" class="text-center">
-
-                            No Student Records Found
-
-                        </td>
-
-                    </tr>
-
-                    {% endfor %}
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-    </div>
-
-</div>
-
-# Edit Modal
-{% for student in students %}
-<div class="modal fade" id="editModal{{ student.id }}" tabindex="-1">
-
-    <div class="modal-dialog">
-
-        <div class="modal-content">
-
-            <form method="POST"
-                  action="{% url 'update_student' student.id %}">
-
-                {% csrf_token %}
-
-                <div class="modal-header">
-
-                    <h5 class="modal-title">
-
-                        Edit Student
+                        📄 {{ upload.filename }}
 
                     </h5>
 
-                    <button
-                        type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal">
-                    </button>
+                    <hr>
+
+                    <p>
+
+                        <strong>Uploaded On :</strong>
+
+                        {{ upload.uploaded_at|date:"d M Y" }}
+
+                    </p>
+
+                    <p>
+
+                        <strong>Time :</strong>
+
+                        {{ upload.uploaded_at|time:"h:i A" }}
+
+                    </p>
+
+                    <p>
+
+                        <strong>Total Records :</strong>
+
+                        {{ upload.students.count }}
+
+                    </p>
 
                 </div>
 
-                <div class="modal-body">
+                <div class="card-footer bg-white">
 
-                    <div class="mb-3">
+                    <a
+                        href="{% url 'student_records' upload.id %}"
+                        class="btn btn-primary w-100">
 
-                        <label>Student ID</label>
+                        View Records
 
-                        <input
-                            type="text"
-                            name="studentid"
-                            class="form-control"
-                            value="{{ student.studentid }}"
-                            required>
-
-                    </div>
-
-                    <div class="mb-3">
-
-                        <label>Student Name</label>
-
-                        <input
-                            type="text"
-                            name="studentname"
-                            class="form-control"
-                            value="{{ student.studentname }}"
-                            required>
-
-                    </div>
-
-                    <div class="mb-3">
-
-                        <label>Email</label>
-
-                        <input
-                            type="email"
-                            name="email"
-                            class="form-control"
-                            value="{{ student.email }}"
-                            required>
-
-                    </div>
-
-                    <div class="mb-3">
-
-                        <label>Course</label>
-
-                        <input
-                            type="text"
-                            name="course"
-                            class="form-control"
-                            value="{{ student.course }}"
-                            required>
-
-                    </div>
-
-                    <div class="mb-3">
-
-                        <label>Department</label>
-
-                        <input
-                            type="text"
-                            name="department"
-                            class="form-control"
-                            value="{{ student.department }}"
-                            required>
-
-                    </div>
+                    </a>
 
                 </div>
 
-                <div class="modal-footer">
-
-                    <button
-                        type="button"
-                        class="btn btn-secondary"
-                        data-bs-dismiss="modal">
-
-                        Cancel
-
-                    </button>
-
-                    <button
-                        type="submit"
-                        class="btn btn-success">
-
-                        Update
-
-                    </button>
-
-                </div>
-
-            </form>
+            </div>
 
         </div>
+
+        {% empty %}
+
+        <div class="col-12">
+
+            <div class="alert alert-info text-center">
+
+                No Excel files uploaded yet.
+
+            </div>
+
+        </div>
+
+        {% endfor %}
 
     </div>
 
 </div>
-{% endfor %}
 
 {% endblock %}

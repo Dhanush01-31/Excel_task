@@ -120,7 +120,7 @@ def validate_department(department):
 # Dashboard Page View
 @login_required
 def dashboard(request):
-    students = Student.objects.all().order_by('id')
+    upload = Student.objects.filter(upload__uploaded_by=request.user).order_by("id")
 
     mandatory_fields = [
         "studentid",
@@ -181,6 +181,8 @@ def dashboard(request):
         
         seen_student_ids = set()
 
+        upload = UploadFile.objects.create(uploaded_by=request.user,filename=excel_file.name)
+        
         for index, row in df.iterrows():
 
             row_number = index + 2
@@ -303,7 +305,7 @@ def dashboard(request):
             seen_student_ids.add(student_id)
             
             #Duplicate Student Id check
-            if Student.objects.filter(studentid=student_id).exists():
+            if Student.objects.filter(upload_uploaded_by=request.user,studentid=student_id).exists():
                 validation_errors.append({
                     "row": row_number,
                     "field": "Student ID",
@@ -337,6 +339,8 @@ def dashboard(request):
             students_objects.append(
 
                 Student(
+                    
+                    upload=upload,
 
                     studentid=student_id,
 
@@ -377,7 +381,7 @@ def dashboard(request):
 
         return redirect("dashboard")
     
-    context = {'students':students}
+    context = {'upload':upload}
     return render(request,"dashboard.html",context)
 
 
@@ -403,7 +407,7 @@ def update_student(request, id):
         studentid = request.POST.get("studentid")
 
         # Check duplicate student id
-        if Student.objects.filter(studentid=studentid).exclude(id=id).exists():
+        if Student.objects.filter(uploaded_by=request.user,studentid=student_id).exists():
 
             messages.error(
                 request,
