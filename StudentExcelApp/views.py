@@ -6,9 +6,12 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth import authenticate,login,logout
 from django.contrib.auth.decorators import login_required
 from .models import *
-import openpyxl #--> pyxl
+import openpyxl #--> pyxl   
 import pandas as pd #-->  pandas
 import re
+
+from django.db import connection
+
 
 # Create your views.
 # def home(request):
@@ -17,28 +20,53 @@ import re
 
 # Login page View
 def login_page(request):
+
     if request.user.is_authenticated:
         return redirect("dashboard")
+
     if request.method == "POST":
-        username = request.POST.get("email")
+
+        login_input = request.POST.get("login")
+
         password = request.POST.get("password")
 
-        print("Username:", username)
-        print("Password:", password)
+        # Check whether the user entered an email
+        if "@" in login_input:
+
+            try:
+                user = User.objects.get(email=login_input)
+
+                username = user.username
+
+            except User.DoesNotExist:
+
+                username = login_input
+
+        else:
+
+            username = login_input
 
         user = authenticate(
+
             request,
+
             username=username,
+
             password=password
+
         )
 
-        
+        if user:
 
-        if user is not None:
             login(request, user)
+
             return redirect("dashboard")
 
-        messages.error(request, "Invalid Email or Password")
+        messages.error(
+            request,
+            "Invalid Username/Email or Password."
+        )
+
     return render(request, "login.html")
 
 # Register Page VIew
@@ -46,12 +74,14 @@ def register(request):
     if request.user.is_authenticated:
         return redirect("dashboard")
     if request.method == "POST":
-        username = request.POST.get('email')
-        password = request.POST.get('password')
+        username = request.POST.get("username").strip()
+        email = request.POST.get("email").strip()
+
+        password = request.POST.get("password")
         confirm_password = request.POST.get("confirm_password")
 
         try:
-            validate_email(username)
+            validate_email(email)
         except ValidationError:
             messages.error(request,"Enter a Valid Email")
             return redirect('register')
@@ -62,13 +92,24 @@ def register(request):
             '@email.com'
         )
 
-        if not username.endswith(allowed_domains):
+        if not email.lower().endswith(allowed_domains):
             messages.error(request,"Enter A valid domain name Like @gmail,@yahoo and @email.com")
             return redirect('register')
 
+        if User.objects.filter(email=email).exists():
+
+            messages.error(
+                request,
+                "Email already registered."
+            )
+
+            return redirect("register")
+
+        
         if User.objects.filter(username=username).exists():
             messages.error(request,"User Already Exist")
             return redirect("register")
+        
 
         if password != confirm_password:
             messages.error(request,"Password Mismatch")
@@ -76,6 +117,7 @@ def register(request):
         
         User.objects.create_user(
             username=username,
+            email=email,
             password=password
         )
         messages.success(request,"Registration Sucessfully")
