@@ -1,23 +1,71 @@
 {% extends 'base.html' %}
+
+{% block title %}
+Register
+{% endblock %}
+
 {% block content %}
-<div class="container">
-    <form method="POST" class="vh-80 w-50 border border-dark rounded-2">
-        {% csrf_token %}
-        <div class="col-sm-6 col-md-8 p-2 mx-3">
-            <label class="form-label">email</label>
-            <input type="email" class="form-control" placeholder="Example : abc@gmail.com" name="email" required>
+
+<div class="container-fluid vh-100 d-flex justify-content-center align-items-center bg-light">
+
+    <div class="card shadow-lg border-0 rounded-4" style="width: 450px;">
+
+        <div class="card-header bg-success text-white text-center py-3">
+            <h3 class="mb-0">Register</h3>
         </div>
-        <div class="col-sm-6 col-md-8 p-2 mx-3">
-            <label class="form-label">password</label>
-            <input type="text" class="form-control" type="password" name="password" required>
+
+        <div class="card-body p-4">
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Email</label>
+                    <input
+                        type="email"
+                        class="form-control"
+                        name="email"
+                        placeholder="Example: abc@gmail.com"
+                        required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Password</label>
+                    <input
+                        type="password"
+                        class="form-control"
+                        name="password"
+                        placeholder="Enter Password"
+                        required>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Confirm Password</label>
+                    <input
+                        type="password"
+                        class="form-control"
+                        name="confirm_password"
+                        placeholder="Confirm Password"
+                        required>
+                </div>
+
+                <button type="submit" class="btn btn-success w-100">
+                    Register
+                </button>
+
+            </form>
+
         </div>
-        <div class="col-sm-6 col-md-8 p-2 mx-3">
-            <label class="form-label">Confirm_password</label>
-            <input type="text" class="form-control" type="password" name="confirm_password" required>
+
+        <div class="card-footer text-center bg-white">
+            Already have an account?
+            <a href="{% url 'login' %}" class="text-decoration-none">
+                Login
+            </a>
         </div>
-        <div class="p-2 mx-3">
-            <button type="submit" class="btn btn-success">Register</button>
-        </div>
-    </form>
+
+    </div>
+
 </div>
+
 {% endblock %}
