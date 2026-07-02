@@ -9,7 +9,6 @@ Dashboard
 <div class="container mt-4">
 
     <!-- Header -->
-
     <div class="d-flex justify-content-between align-items-center mb-4">
 
         <h3>Student Excel Upload Dashboard</h3>
@@ -21,13 +20,10 @@ Dashboard
     </div>
 
     <!-- Upload Excel -->
-
-    <div class="card shadow mb-4">
+    <div class="card shadow mb-5">
 
         <div class="card-header bg-primary text-white">
-
             Upload Excel File
-
         </div>
 
         <div class="card-body">
@@ -70,12 +66,7 @@ Dashboard
     </div>
 
     <!-- Uploaded Files -->
-
-    <h4 class="mb-3">
-
-        My Uploaded Files
-
-    </h4>
+    <h4 class="mb-3">My Uploaded Files</h4>
 
     <div class="row">
 
@@ -83,57 +74,47 @@ Dashboard
 
         <div class="col-md-4 mb-4">
 
-            <div class="card shadow h-100">
+            <a href="{% url 'student_records' upload.id %}"
+               class="text-decoration-none text-dark">
 
-                <div class="card-body">
+                <div class="card shadow h-100 border-0">
 
-                    <h5 class="card-title">
+                    <div class="card-body">
 
-                        📄 {{ upload.filename }}
+                        <h5 class="card-title">
+                            📄 {{ upload.filename }}
+                        </h5>
 
-                    </h5>
+                        <hr>
 
-                    <hr>
+                        <p>
+                            <strong>Uploaded On:</strong><br>
+                            {{ upload.uploaded_at|date:"d M Y" }}
+                        </p>
 
-                    <p>
+                        <p>
+                            <strong>Time:</strong><br>
+                            {{ upload.uploaded_at|time:"h:i A" }}
+                        </p>
 
-                        <strong>Uploaded On :</strong>
+                        <p>
+                            <strong>Total Records:</strong>
+                            {{ upload.total_records }}
+                        </p>
 
-                        {{ upload.uploaded_at|date:"d M Y" }}
+                    </div>
 
-                    </p>
+                    <div class="card-footer bg-white text-center">
 
-                    <p>
+                        <span class="btn btn-primary w-100">
+                            View Records
+                        </span>
 
-                        <strong>Time :</strong>
-
-                        {{ upload.uploaded_at|time:"h:i A" }}
-
-                    </p>
-
-                    <p>
-
-                        <strong>Total Records :</strong>
-
-                        {{ upload.students.count }}
-
-                    </p>
-
-                </div>
-
-                <div class="card-footer bg-white">
-
-                    <a
-                        href="{% url 'student_records' upload.id %}"
-                        class="btn btn-primary w-100">
-
-                        View Records
-
-                    </a>
+                    </div>
 
                 </div>
 
-            </div>
+            </a>
 
         </div>
 
@@ -152,7 +133,69 @@ Dashboard
         {% endfor %}
 
     </div>
+{% if invalid_rows %}
 
+<h4 class="mt-4 text-danger">
+    Invalid Records
+</h4>
+
+<table class="table table-bordered table-striped">
+
+    <thead>
+
+        <tr>
+
+            <th>Row</th>
+
+            <th>Student ID</th>
+
+            <th>Name</th>
+
+            <th>Email</th>
+
+            <th>Course</th>
+
+            <th>Department</th>
+
+            <th>Error</th>
+
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+    {% for row in invalid_rows %}
+
+        <tr>
+
+            <td>{{ row.row }}</td>
+
+            <td>{{ row.studentid }}</td>
+
+            <td>{{ row.studentname }}</td>
+
+            <td>{{ row.email }}</td>
+
+            <td>{{ row.course }}</td>
+
+            <td>{{ row.department }}</td>
+
+            <td class="text-danger">
+
+                {{ row.error }}
+
+            </td>
+
+        </tr>
+
+    {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% endif %}
 </div>
 
 {% endblock %}

@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+
+{% block title %}
+Student Records
+{% endblock %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <!-- Header Card -->
+    <div class="card shadow-lg border-0 rounded-4">
+
+        <div class="card-header bg-primary text-white py-3 rounded-top-4">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+                    <h3 class="mb-1">
+                        <i class="bi bi-file-earmark-excel-fill"></i>
+                        {{ upload.filename }}
+                    </h3>
+
+                    <small class="text-light">
+                        Uploaded Student Records
+                    </small>
+                </div>
+
+                <div>
+                    <span class="badge bg-warning text-dark fs-6 px-3 py-2">
+                        Total Records : {{ students.count }}
+                    </span>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover table-striped align-middle">
+
+                    <thead class="table-light">
+    <tr>
+        <th>#</th>
+        <th>Student ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Course</th>
+        <th>Department</th>
+        <th width="180">Action</th>
+    </tr>
+</thea
+
+                    <tbody>
+
+                        {% for student in students %}
+
+                       <tr>
+
+    <td>{{ forloop.counter }}</td>
+
+    <td>
+        <span class="badge bg-primary">
+            {{ student.studentid }}
+        </span>
+    </td>
+
+    <td>{{ student.studentname }}</td>
+
+    <td>{{ student.email }}</td>
+
+    <td>{{ student.course }}</td>
+
+    <td>{{ student.department }}</td>
+
+    <td>
+
+        <!-- Edit Button -->
+        <button
+            class="btn btn-warning btn-sm"
+            data-bs-toggle="modal"
+            data-bs-target="#editModal{{ student.id }}">
+            <i class="bi bi-pencil-square"></i> Edit
+        </button>
+
+        <!-- Delete Button -->
+        <a href="{% url 'delete_student' student.id %}"
+           class="btn btn-danger btn-sm"
+           onclick="return confirm('Are you sure you want to delete this student?')">
+            <i class="bi bi-trash"></i> Delete
+        </a>
+
+    </td>
+
+</tr>
+                        {% empty %}
+
+                        <tr>
+
+                            <td colspan="6" class="text-center py-5">
+
+                                <img src="https://cdn-icons-png.flaticon.com/512/7486/7486740.png"
+                                     width="80"
+                                     class="mb-3">
+
+                                <h5 class="text-muted">
+                                    No Student Records Found
+                                </h5>
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+        <div class="card-footer bg-light text-end">
+
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                ← Back to Dashboard
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% for student in students %}
+<div class="modal fade"
+     id="editModal{{ student.id }}"
+     tabindex="-1">
+
+    <div class="modal-dialog">
+
+        <div class="modal-content">
+
+            <form method="POST"
+                  action="{% url 'update_student' student.id %}">
+
+                {% csrf_token %}
+
+                <div class="modal-header bg-warning">
+
+                    <h5 class="modal-title">
+                        Edit Student
+                    </h5>
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"></button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <!-- Student ID (Read Only) -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Student ID
+                        </label>
+
+                        <input type="text"
+                               class="form-control"
+                               value="{{ student.studentid }}"
+                               readonly>
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label>Name</label>
+
+                        <input type="text"
+                               name="studentname"
+                               class="form-control"
+                               value="{{ student.studentname }}"
+                               required>
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label>Email</label>
+
+                        <input type="email"
+                               name="email"
+                               class="form-control"
+                               value="{{ student.email }}"
+                               required>
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label>Course</label>
+
+                        <input type="text"
+                               name="course"
+                               class="form-control"
+                               value="{{ student.course }}"
+                               required>
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label>Department</label>
+
+                        <input type="text"
+                               name="department"
+                               class="form-control"
+                               value="{{ student.department }}"
+                               required>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button class="btn btn-secondary"
+                            data-bs-dismiss="modal"
+                            type="button">
+                        Cancel
+                    </button>
+
+                    <button class="btn btn-success"
+                            type="submit">
+                        Update
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+{% endfor %}
+
+{% endblock %}

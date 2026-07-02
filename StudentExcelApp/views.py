@@ -9,8 +9,9 @@ from .models import *
 import openpyxl #--> pyxl   
 import pandas as pd #-->  pandas
 import re
-
+from django.db.models import Count
 from django.db import connection
+from django.db import transaction
 
 
 # Create your views.
@@ -124,7 +125,7 @@ def register(request):
         return redirect('login')
     return render(request,'register.html')
 
-
+# Validators
 def validate_student_name(name):
 
     name = str(name).strip()
@@ -162,7 +163,8 @@ def validate_department(department):
 # Dashboard Page View
 @login_required
 def dashboard(request):
-    upload = Student.objects.filter(upload__uploaded_by=request.user).order_by("id")
+
+    uploads = UploadFile.objects.filter(uploaded_by=request.user).annotate(total_records=Count("students"))
 
     mandatory_fields = [
         "studentid",
@@ -173,23 +175,41 @@ def dashboard(request):
     ]
 
     if request.method == "POST":
-        excel_file = request.FILES.get('excel_file')
-        
 
+        excel_file = request.FILES.get("excel_file")
+
+        # File Validation
         if not excel_file:
-            messages.error(request,"please Choose an Excel File")
-            return redirect('dashboard')
+            messages.error(request, "Please choose an Excel file.")
+            return redirect("dashboard")
+
+        if not excel_file.name.lower().endswith((".xlsx", ".xls")):
+            messages.error(request, "Only Excel files are allowed.")
+            return redirect("dashboard")
+
+        try:
+            df = pd.read_excel(excel_file)
+        except Exception:
+            messages.error(request, "Unable to read the Excel file.")
+            return redirect("dashboard")
+
+        # Convert all column names to lowercase
+        df.columns = df.columns.str.strip().str.lower()
         
-        if not excel_file.name.lower().endswith((".xlsx",".xls")):
-            messages.error(request,"Only Excel Files are allowed")
+        # Column order checking.
+        expected_columns = [
+                "studentid",
+                "studentname",
+                "email",
+                "course",
+                "department",
+            ]
+        if list(df.columns) != expected_columns:
+            messages.error(request,f"Invalid Template  Expected Columns: {', '.join(expected_columns)}")
+            
             return redirect('dashboard')
-
-        df = pd.read_excel(excel_file)
-
-        df.columns = ( df.columns.str.strip().str.lower() )
-
-
-        # Missing columns Validation
+            
+        # Check Missing Columns
         missing_columns = []
 
         for column in mandatory_fields:
@@ -197,34 +217,21 @@ def dashboard(request):
                 missing_columns.append(column)
 
         if missing_columns:
-            messages.error(request,"Missing Columns :"+",".join(missing_columns))
-            return redirect('dashboard')
-        
-        errors = []
-
-        for index,row in df.iterrows():
-            for field in mandatory_fields:
-                value = row[field]
-
-                if pd.isna(value) or str(value).strip()=="":
-                    errors.append(
-                        f"ROW {index+2} : {field} is mandatory"
-                    )
-        
-        if errors:
-            for error in errors:
-                messages.error(request,error)
-            return redirect('dashboard')
-        
-        # Bulk Updation 
-        students_objects = []
+            messages.error(
+                request,
+                "Missing Columns: " + ", ".join(missing_columns)
+            )
+            return redirect("dashboard")
 
         validation_errors = []
-        
-        seen_student_ids = set()
 
-        upload = UploadFile.objects.create(uploaded_by=request.user,filename=excel_file.name)
+        seen_student_ids = set()
         
+        invalid_rows = []
+        
+        students_objects = []
+
+        # Validate each row
         for index, row in df.iterrows():
 
             row_number = index + 2
@@ -235,196 +242,269 @@ def dashboard(request):
             course = str(row["course"]).strip()
             department = str(row["department"]).strip()
 
-            
-            # Mandatory field validation
-            if not student_id:
-
-                validation_errors.append({
-                    "row": row_number,
-                    "field": "Student ID",
-                    "value": "",
-                    "error": "Student ID is mandatory"
-                })
-
+            # Mandatory Validation
+            if pd.isna(row["studentid"]) or student_id == "":
+                validation_errors.append(
+                    f"Row {row_number}: Student ID is mandatory."
+                )
+                invalid_rows.append({
+        "row": row_number,
+        "studentid": student_id,
+        "studentname": student_name,
+        "email": email,
+        "course": course,
+        "department": department,
+        "error": "Student ID is mandatory"
+    })
                 continue
 
-            if not student_name:
-
-                validation_errors.append({
-                    "row": row_number,
-                    "field": "Student Name",
-                    "value": "",
-                    "error": "Student Name is mandatory"
-                })
-
+            if pd.isna(row["studentname"]) or student_name == "":
+                validation_errors.append(
+                    f"Row {row_number}: Student Name is mandatory."
+                )
+                invalid_rows.append({
+        "row": row_number,
+        "studentid": student_id,
+        "studentname": student_name,
+        "email": email,
+        "course": course,
+        "department": department,
+        "error": "Student Name is mandatory"
+    })
                 continue
 
-            if not email:
-
-                validation_errors.append({
-                    "row": row_number,
-                    "field": "Email",
-                    "value": "",
-                    "error": "Email is mandatory"
-            })
-
+            if pd.isna(row["email"]) or email == "":
+                validation_errors.append(
+                    f"Row {row_number}: Email is mandatory."
+                )
+                invalid_rows.append({
+        "row": row_number,
+        "studentid": student_id,
+        "studentname": student_name,
+        "email": email,
+        "course": course,
+        "department": department,
+        "error": "Email ID is mandatory"
+    })
                 continue
 
-            if not course:
-
-                validation_errors.append({
-                    "row": row_number,
-                    "field": "Course",
-                    "value": "",
-                    "error": "Course is mandatory"
-                    })
-
+            if pd.isna(row["course"]) or course == "":
+                validation_errors.append(
+                    f"Row {row_number}: Course is mandatory."
+                )
+                invalid_rows.append({
+        "row": row_number,
+        "studentid": student_id,
+        "studentname": student_name,
+        "email": email,
+        "course": course,
+        "department": department,
+        "error": "course is mandatory"
+    })
                 continue
 
-            if not department:
-
-                validation_errors.append({
-                    "row": row_number,
-                    "field": "Department",
-                    "value": "",
-                    "error": "Department is mandatory"
-                })
-
+            if pd.isna(row["department"]) or department == "":
+                validation_errors.append(
+                    f"Row {row_number}: Department is mandatory."
+                )
+                invalid_rows.append({
+        "row": row_number,
+        "studentid": student_id,
+        "studentname": student_name,
+        "email": email,
+        "course": course,
+        "department": department,
+        "error": "Department is mandatory"
+    })
                 continue
 
             # Student Name Validation
             if not validate_student_name(student_name):
-
-                validation_errors.append({
-
-                    "row": row_number,
-
-                    "field": "Student Name",
-
-                    "value": student_name,
-
-                    "error": "Invalid Student Name"
-
-                })
-
+                validation_errors.append(
+                    f"Row {row_number}: Invalid Student Name."
+                )
+                invalid_rows.append({
+        "row": row_number,
+        "studentid": student_id,
+        "studentname": student_name,
+        "email": email,
+        "course": course,
+        "department": department,
+        "error": "Invalid Student Name"
+    })
                 continue
 
             # Email Validation
             if not validate_student_email(email):
-
-                validation_errors.append({
+                validation_errors.append(
+                    f"Row {row_number}: Invalid Email."
+                )
+                invalid_rows.append({
 
                     "row": row_number,
 
-                    "field": "Email",
+                    "studentid": student_id,
 
-                    "value": email,
+                    "studentname": student_name,
+
+                    "email": email,
+
+                    "course": course,
+
+                    "department": department,
 
                     "error": "Invalid Email"
 
-                })
-
+                    })
                 continue
-            
-            # student_id_validation
+
+            # Student ID Validation
             if not validate_student_id(student_id):
-                validation_errors.append({
-                    "row": row_number,
-                     "field": "Student ID",
-                     "value": student_id,
-                      "error": "Invalid Student ID Format",
-                       })
+                validation_errors.append(
+                    f"Row {row_number}: Invalid Student ID Format."
+                )
+                invalid_rows.append({
+
+                "row": row_number,
+
+                "studentid": student_id,
+
+                "studentname": student_name,
+
+                "email": email,
+
+                "course": course,
+
+                "department": department,
+
+                "error": "Invalid Student Id"
+
+                })
                 continue
-            # Student_id in uploaded excel.
+
+            # Duplicate in Excel
             if student_id in seen_student_ids:
-                validation_errors.append({
-                    "row": row_number,
-                    "field": "Student ID",
-                    "value": student_id,
-                    "error": "Duplicate Student ID in uploaded Excel"
-                })
+                validation_errors.append(
+                    f"Row {row_number}: Duplicate Student ID in Excel."
+                )
+                invalid_rows.append({
+        "row": row_number,
+        "studentid": student_id,
+        "studentname": student_name,
+        "email": email,
+        "course": course,
+        "department": department,
+        "error": "Duplicate Student ID in Excel."
+    })
                 continue
+
             seen_student_ids.add(student_id)
-            
-            #Duplicate Student Id check
-            if Student.objects.filter(upload_uploaded_by=request.user,studentid=student_id).exists():
-                validation_errors.append({
-                    "row": row_number,
-                    "field": "Student ID",
-                    "value": student_id,
-                    "error": "Student ID already exists in database"
-                })
+
+            # Duplicate in Database
+            if Student.objects.filter(
+                upload__uploaded_by=request.user,
+                studentid=student_id
+            ).exists():
+
+                validation_errors.append(
+                    f"Row {row_number}: Student ID already exists in database."
+                )
+                invalid_rows.append({
+        "row": row_number,
+        "studentid": student_id,
+        "studentname": student_name,
+        "email": email,
+        "course": course,
+        "department": department,
+        "error": "Student ID already exists in database"
+    })
                 continue
-           
-           # student_Validate_course
+
+            # Course Validation
             if not validate_course(course):
-                validation_errors.append({
-                    "row":row_number,
-                    "field": "Course",
-                     "value": course,
-                     "error": "Invalid Course"
-                })
+                validation_errors.append(
+                    f"Row {row_number}: Invalid Course."
+                )
+                invalid_rows.append({
+        "row": row_number,
+        "studentid": student_id,
+        "studentname": student_name,
+        "email": email,
+        "course": course,
+        "department": department,
+        "error": "Invalid Course."
+    })
                 continue
 
-            # Student_validate_department
+            # Department Validation
             if not validate_department(department):
-                validation_errors.append({
-                    "row": row_number,
-                     "field": "Department",
-                      "value": department,
-                      "error": "Invalid Department"    
-                })
+                validation_errors.append(
+                    f"Row {row_number}: Invalid Department."
+                )
+                invalid_rows.append({
+        "row": row_number,
+        "studentid": student_id,
+        "studentname": student_name,
+        "email": email,
+        "course": course,
+        "department": department,
+        "error": "Invalid Course."
+    })
                 continue
 
-            
-            
             students_objects.append(
 
                 Student(
-                    
-                    upload=upload,
 
                     studentid=student_id,
-
                     studentname=student_name,
-
                     email=email,
-
                     course=course,
-
                     department=department,
 
                 )
 
             )
 
-        # Save only valid students
-        if students_objects:    
+        # If there are validation errors, don't save anything
+        if validation_errors:
+
+            context = {'uploads':uploads,
+                       'invalid_rows':invalid_rows}
+            
+            for error in validation_errors:
+                messages.error(request, error)
+            
+
+            return render(request,"dashboard.html",context)
+
+        # Save everything in one transaction
+        with transaction.atomic():
+
+            upload = UploadFile.objects.create(
+
+                uploaded_by=request.user,
+                filename=excel_file.name
+
+            )
+
+            for student in students_objects:
+                student.upload = upload
+
             Student.objects.bulk_create(students_objects)
 
-        # Success message
-            messages.success(
-                request,
-            f"{len(students_objects)} records uploaded successfully."
-            )
-        else:
-            messages.warning(request,"No valid records Found to upload.")
-
-        # Show validation errors
-        for error in validation_errors:
-
-            messages.warning(
-
-                request,
-
-                f"Row {error['row']} | {error['field']} | Value: {error['value']} | {error['error']}"
-
-                )
+        messages.success(
+            request,
+            f"{len(students_objects)} students uploaded successfully."
+        )
 
         return redirect("dashboard")
-    
-    context = {'upload':upload}
-    return render(request,"dashboard.html",context)
+
+    context = {
+        "uploads": uploads
+    }
+
+    return render(request, "dashboard.html", context)
 
 
 # Logout View
@@ -446,19 +526,6 @@ def update_student(request, id):
 
     if request.method == "POST":
 
-        studentid = request.POST.get("studentid")
-
-        # Check duplicate student id
-        if Student.objects.filter(uploaded_by=request.user,studentid=student_id).exists():
-
-            messages.error(
-                request,
-                "Student ID already exists."
-            )
-
-            return redirect("dashboard")
-
-        student.studentid = studentid
         student.studentname = request.POST.get("studentname")
         student.email = request.POST.get("email")
         student.course = request.POST.get("course")
@@ -466,15 +533,9 @@ def update_student(request, id):
 
         student.save()
 
-        messages.success(
-            request,
-            "Student updated successfully."
-        )
+        messages.success(request, "Student updated successfully.")
 
         return redirect("dashboard")
-    context={'student':student}
-    return render(request,"dashboard.html",context)
-
 
 # delete view.
 @login_required
@@ -487,3 +548,25 @@ def delete_student(request, id):
     messages.success(request, "Student deleted successfully.")
 
     return redirect("dashboard")
+
+# student records view.
+def student_records(request, upload_id):
+
+    upload = get_object_or_404(
+        UploadFile,
+        id=upload_id,
+        uploaded_by=request.user
+    )
+
+    students = Student.objects.filter(
+        upload=upload
+    )
+
+    return render(
+        request,
+        "student_records.html",
+        {
+            "upload": upload,
+            "students": students
+        }
+    )
