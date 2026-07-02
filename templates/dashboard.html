@@ -5,197 +5,138 @@ Dashboard
 {% endblock %}
 
 {% block content %}
-
 <div class="container mt-4">
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-
         <h3>Student Excel Upload Dashboard</h3>
-
-        <a href="{% url 'logout' %}" class="btn btn-danger">
-            Logout
-        </a>
-
+        <a href="{% url 'logout' %}" class="btn btn-danger">Logout</a>
     </div>
 
-    <!-- Upload Excel -->
-    <div class="card shadow mb-5">
-
+    <!-- Upload Form -->
+    <div class="card shadow mb-4">
         <div class="card-header bg-primary text-white">
             Upload Excel File
         </div>
-
         <div class="card-body">
-
             <form method="POST" enctype="multipart/form-data">
-
                 {% csrf_token %}
-
-                <div class="row">
-
+                <div class="row g-2">
                     <div class="col-md-9">
-
                         <input
                             type="file"
                             name="excel_file"
                             class="form-control"
                             accept=".xlsx,.xls"
                             required>
-
                     </div>
-
                     <div class="col-md-3">
-
-                        <button
-                            type="submit"
-                            class="btn btn-success w-100">
-
+                        <button type="submit" class="btn btn-success w-100">
                             Upload File
-
                         </button>
-
                     </div>
-
                 </div>
-
             </form>
-
         </div>
-
     </div>
+
+    <!-- Invalid Rows -->
+    {% if invalid_rows %}
+    <div class="card shadow mb-4">
+        <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+            <span>Invalid Records ({{ invalid_rows|length }})</span>
+            <button class="btn btn-light btn-sm" id="toggleTable" type="button">
+                Show Errors
+            </button>
+        </div>
+        <div class="card-body" id="invalidRowsTable" style="display:none;">
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Row</th>
+                            <th>Student ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Course</th>
+                            <th>Department</th>
+                            <th>Error</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in invalid_rows %}
+                        <tr>
+                            <td>{{ row.row }}</td>
+                            <td>{{ row.studentid }}</td>
+                            <td>{{ row.studentname }}</td>
+                            <td>{{ row.email }}</td>
+                            <td>{{ row.course }}</td>
+                            <td>{{ row.department }}</td>
+                            <td class="text-danger fw-bold">{{ row.error }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Uploaded Files -->
     <h4 class="mb-3">My Uploaded Files</h4>
-
     <div class="row">
-
         {% for upload in uploads %}
-
         <div class="col-md-4 mb-4">
-
-            <a href="{% url 'student_records' upload.id %}"
-               class="text-decoration-none text-dark">
-
+            <a href="{% url 'student_records' upload.id %}" class="text-decoration-none text-dark">
                 <div class="card shadow h-100 border-0">
-
                     <div class="card-body">
-
-                        <h5 class="card-title">
-                            📄 {{ upload.filename }}
-                        </h5>
-
+                        <h5 class="card-title">📄 {{ upload.filename }}</h5>
                         <hr>
-
-                        <p>
-                            <strong>Uploaded On:</strong><br>
-                            {{ upload.uploaded_at|date:"d M Y" }}
-                        </p>
-
-                        <p>
-                            <strong>Time:</strong><br>
-                            {{ upload.uploaded_at|time:"h:i A" }}
-                        </p>
-
-                        <p>
-                            <strong>Total Records:</strong>
-                            {{ upload.total_records }}
-                        </p>
-
+                        <p><strong>Uploaded On:</strong><br>{{ upload.uploaded_at|date:"d M Y" }}</p>
+                        <p><strong>Time:</strong><br>{{ upload.uploaded_at|time:"h:i A" }}</p>
+                        <p><strong>Total Records:</strong> {{ upload.total_records }}</p>
                     </div>
-
                     <div class="card-footer bg-white text-center">
-
-                        <span class="btn btn-primary w-100">
-                            View Records
-                        </span>
-
+                        <span class="btn btn-primary w-100">View Records</span>
                     </div>
-
                 </div>
-
             </a>
-
         </div>
-
         {% empty %}
-
         <div class="col-12">
-
             <div class="alert alert-info text-center">
-
                 No Excel files uploaded yet.
-
             </div>
-
         </div>
-
         {% endfor %}
-
     </div>
-{% if invalid_rows %}
-
-<h4 class="mt-4 text-danger">
-    Invalid Records
-</h4>
-
-<table class="table table-bordered table-striped">
-
-    <thead>
-
-        <tr>
-
-            <th>Row</th>
-
-            <th>Student ID</th>
-
-            <th>Name</th>
-
-            <th>Email</th>
-
-            <th>Course</th>
-
-            <th>Department</th>
-
-            <th>Error</th>
-
-        </tr>
-
-    </thead>
-
-    <tbody>
-
-    {% for row in invalid_rows %}
-
-        <tr>
-
-            <td>{{ row.row }}</td>
-
-            <td>{{ row.studentid }}</td>
-
-            <td>{{ row.studentname }}</td>
-
-            <td>{{ row.email }}</td>
-
-            <td>{{ row.course }}</td>
-
-            <td>{{ row.department }}</td>
-
-            <td class="text-danger">
-
-                {{ row.error }}
-
-            </td>
-
-        </tr>
-
-    {% endfor %}
-
-    </tbody>
-
-</table>
-
-{% endif %}
 </div>
 
+<script>
+$(document).ready(function () {
+    $("#toggleTable").click(function () {
+        $("#invalidRowsTable").slideToggle(400);
+
+        if ($(this).text().trim() === "Show Errors") {
+            $(this).text("Hide Errors");
+            $(this).removeClass("btn-light").addClass("btn-secondary");
+        } else {
+            $(this).text("Show Errors");
+            $(this).removeClass("btn-secondary").addClass("btn-light");
+        }
+    });
+});
+</script>
 {% endblock %}

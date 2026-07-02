@@ -18,9 +18,9 @@ Login
 
             <form method="POST">
                 {% csrf_token %}
-
+                <input type="hidden" name="next" value="{{ request.GET.next }}">
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Email</label>
+                    <label class="form-label fw-bold">Email<span class="text-danger">*</span></label>
                     <input
                         type="text"
                         class="form-control"
@@ -30,7 +30,7 @@ Login
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label fw-bold">Password</label>
+                    <label class="form-label fw-bold">Password<span class="text-danger">*</span></label>
                     <input
                         type="password"
                         class="form-control"
@@ -71,7 +71,6 @@ Login
         </div>
 
     </div>
-
 </div>
 
 {% endblock %}

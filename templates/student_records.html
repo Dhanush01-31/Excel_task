@@ -40,7 +40,7 @@ Student Records
 
             <div class="table-responsive">
 
-                <table class="table table-hover table-striped align-middle">
+                <table id="studentTable" class="table table-hover table-striped align-middle">
 
                     <thead class="table-light">
     <tr>
@@ -52,7 +52,7 @@ Student Records
         <th>Department</th>
         <th width="180">Action</th>
     </tr>
-</thea
+</thead>
 
                     <tbody>
 
@@ -253,4 +253,38 @@ Student Records
 </div>
 {% endfor %}
 
+<script>
+$(document).ready(function () {
+
+    $('#studentTable').DataTable({
+
+        pageLength: 10,
+
+        lengthMenu: [
+            [5, 10, 25, 50],
+            [5, 10, 25, 50]
+        ],
+
+        ordering: true,
+
+        searching: true,
+
+        paging: true,
+
+        info: true,
+
+        language: {
+
+            search: "Search Student :",
+
+            lengthMenu: "Show _MENU_ records",
+
+            info: "Showing _START_ to _END_ of _TOTAL_ students"
+
+        }
+
+    });
+
+});
+</script>
 {% endblock %}

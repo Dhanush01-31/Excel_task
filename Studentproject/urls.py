@@ -23,14 +23,16 @@ from django.contrib.auth import views as auth_views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("", include("StudentExcelApp.urls")),
+    
     path(
-        "password-reset/",
-        auth_views.PasswordResetView.as_view(
-            template_name="forgot_password.html"
-        ),
-        name="password_reset",
+    "password-reset/",
+    auth_views.PasswordResetView.as_view(
+        template_name="forgot_password.html",
+        email_template_name="registration/password_reset_email.html",
+        subject_template_name="registration/password_reset_subject.txt",
     ),
-
+    name="password_reset",),
+    
     path(
         "password-reset/done/",
         auth_views.PasswordResetDoneView.as_view(
@@ -54,7 +56,12 @@ urlpatterns = [
         ),
         name="password_reset_complete",
     ),
+
+
 ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    
+handler404 = "StudentExcelApp.views.custom_404"
+handler500 = "StudentExcelApp.views.custom_500"
