@@ -27,4 +27,35 @@ class Student(models.Model):
         return self.studentname
     
 
+# Email Log Model
+class EmailLog(models.Model):
 
+    EMAIL_STATUS = (
+        ("sent", "Sent"),
+        ("failed", "Failed"),
+    )
+
+    to_email = models.EmailField()
+
+    cc_email = models.TextField(
+        blank=True,
+        null=True
+    )
+
+    subject = models.CharField(
+        max_length=255
+    )
+
+    email_status = models.CharField(
+        max_length=10,
+        choices=EMAIL_STATUS
+    )
+
+    sent_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    related_object_id = models.IntegerField()
+
+    def __str__(self):
+        return f"{self.to_email} - {self.email_status}"

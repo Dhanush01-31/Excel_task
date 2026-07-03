@@ -1,0 +1,55 @@
+import os
+
+from celery import shared_task
+from django.conf import settings
+from django.core.mail import EmailMessage
+
+from .models import EmailLog
+
+
+@shared_task
+def send_invalid_records_email(user_email, excel_path, upload_id):
+
+    subject = "Invalid Student Records"
+
+    body = (
+        "Dear User,\n\n"
+        "Some rows in your uploaded Excel file were invalid.\n"
+        "Please find the attached Excel file containing the failed records.\n\n"
+        "Regards,\n"
+        "InESS"
+    )
+
+    try:
+
+        email = EmailMessage(
+            subject=subject,
+            body=body,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[user_email],
+        )
+
+        email.attach_file(excel_path)
+
+        email.send()
+
+        EmailLog.objects.create(
+            to_email=user_email,
+            subject=subject,
+            email_status="sent",
+            related_object_id=upload_id,
+        )
+
+    except Exception:
+
+        EmailLog.objects.create(
+            to_email=user_email,
+            subject=subject,
+            email_status="failed",
+            related_object_id=upload_id,
+        )
+
+    finally:
+
+        if os.path.exists(excel_path):
+            os.remove(excel_path)

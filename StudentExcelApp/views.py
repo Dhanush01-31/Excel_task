@@ -13,6 +13,13 @@ from django.db.models import Count
 from django.db import connection
 from django.db import transaction
 from django.utils.http import url_has_allowed_host_and_scheme
+#celery import
+import os
+import uuid
+
+from django.conf import settings
+
+from .tasks import send_invalid_records_email
 
 # Create your views.
 # def home(request):
@@ -168,47 +175,6 @@ def validate_department(department):
     )
 
 # Dashboard Page View
-import re
-import pandas as pd
-
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.core.exceptions import ValidationError
-from django.core.validators import validate_email
-from django.db import transaction
-from django.db.models import Count
-from django.shortcuts import render, redirect
-
-from .models import Student, UploadFile
-
-
-def validate_student_name(name):
-    name = str(name).strip()
-    return bool(re.fullmatch(r"[A-Za-z ]+", name))
-
-
-def validate_student_email(email):
-    try:
-        validate_email(str(email).strip())
-        return True
-    except ValidationError:
-        return False
-
-
-def validate_student_id(studentid):
-    studentid = str(studentid).strip()
-    return bool(re.fullmatch(r"STU\d{3}", studentid))
-
-
-def validate_course(course):
-    course = str(course).strip()
-    return bool(re.fullmatch(r"[A-Za-z ]+", course))
-
-
-def validate_department(department):
-    department = str(department).strip()
-    return bool(re.fullmatch(r"[A-Za-z ]+", department))
-
 
 @login_required
 def dashboard(request):
@@ -342,6 +308,7 @@ def dashboard(request):
             )
 
         upload = None
+        
         if valid_students:
             with transaction.atomic():
                 upload = UploadFile.objects.create(
@@ -351,6 +318,32 @@ def dashboard(request):
                 for student in valid_students:
                     student.upload = upload
                 Student.objects.bulk_create(valid_students, batch_size=500)
+                
+        # Send invalid records through email
+        if invalid_rows:
+
+            error_df = pd.DataFrame(invalid_rows)
+            os.makedirs(os.path.join(
+                settings.MEDIA_ROOT, "error_reports"),
+                        exist_ok=True,)
+
+            file_name = f"errors_{uuid.uuid4().hex}.xlsx"
+
+            file_path = os.path.join(
+            settings.MEDIA_ROOT,
+            "error_reports",
+            file_name,
+            )
+
+            error_df.to_excel(file_path, index=False)
+
+            related_id = upload.id if upload else 0
+
+            send_invalid_records_email.delay(
+            request.user.email,
+            file_path,
+            related_id,
+            )                                                        
 
         if invalid_rows and valid_students:
             messages.warning(

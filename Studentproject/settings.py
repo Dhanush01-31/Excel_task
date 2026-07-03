@@ -26,8 +26,7 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG',cast=bool)
 
-ALLOWED_HOSTS = ["127.0.0.1",
-                 "localhost",]
+ALLOWED_HOSTS = ["127.0.0.1"]
 
 
 
@@ -141,23 +140,34 @@ LOGOUT_REDIRECT_URL = "login"
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
-EMAIL_HOST = "smtp.gmail.com"
+EMAIL_HOST = config("EMAIL_HOST", default="smtp.gmail.com")
 
-EMAIL_PORT = 587
+EMAIL_PORT = config("EMAIL_PORT", default=587, cast=int)
 
-EMAIL_USE_TLS = True
+EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
 
-EMAIL_HOST_USER = "dhanusharumugam245@gmail.com"
+EMAIL_HOST_USER = config("EMAIL_HOST_USER")
 
-EMAIL_HOST_PASSWORD = "wjjbwubqjyxaciep"
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
+# SESSION_COOKIE_HTTPONLY = True
 
-SESSION_COOKIE_HTTPONLY = True
+# CSRF_COOKIE_HTTPONLY = True
 
-CSRF_COOKIE_HTTPONLY = True
+# X_FRAME_OPTIONS = "DENY"
 
-X_FRAME_OPTIONS = "DENY"
+# SECURE_CONTENT_TYPE_NOSNIFF = True
 
-SECURE_CONTENT_TYPE_NOSNIFF = True
+# celery Settings
+
+CELERY_BROKER_URL = config("CELERY_BROKER_URL", default="redis://127.0.0.1:6379/0")
+
+CELERY_RESULT_BACKEND = config("CELERY_RESULT_BACKEND", default="redis://127.0.0.1:6379/1")
+
+CELERY_ACCEPT_CONTENT = ["json"]
+
+CELERY_TASK_SERIALIZER = "json"
+
+CELERY_RESULT_SERIALIZER = "json"
