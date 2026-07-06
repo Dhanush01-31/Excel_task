@@ -52,9 +52,15 @@ Dashboard
         </div>
     </div>
 
+    <!--Invalid rows POP UP message-->
+    <div id="emailSuccessMessage" class="alert alert-success alert-dismissible fade d-none" role="alert">
+    <strong>Success!</strong> We have sent the invalid rows to the user.
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
     <!-- Invalid Rows -->
     {% if invalid_rows %}
-    <div class="card shadow mb-4">
+    <div class="card shadow mb-4" id="invalidCard">
         <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
             <span>Invalid Records ({{ invalid_rows|length }})</span>
             <button class="btn btn-light btn-sm" id="toggleTable" type="button">
@@ -126,17 +132,34 @@ Dashboard
 
 <script>
 $(document).ready(function () {
+
     $("#toggleTable").click(function () {
-        $("#invalidRowsTable").slideToggle(400);
 
         if ($(this).text().trim() === "Show Errors") {
-            $(this).text("Hide Errors");
-            $(this).removeClass("btn-light").addClass("btn-secondary");
+
+            $("#invalidRowsTable").slideDown(400);
+
+            $(this)
+                .text("Hide Errors")
+                .removeClass("btn-light")
+                .addClass("btn-secondary");
+
         } else {
-            $(this).text("Show Errors");
-            $(this).removeClass("btn-secondary").addClass("btn-light");
+
+            // Hide the entire invalid rows card
+            $("#invalidCard").fadeOut(500, function () {
+
+                // Show success popup
+                $("#emailSuccessMessage")
+                    .removeClass("d-none")
+                    .addClass("show");
+
+            });
+
         }
+
     });
+
 });
 </script>
 {% endblock %}
