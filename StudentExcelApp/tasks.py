@@ -1,9 +1,9 @@
 import os
-
 from celery import shared_task
 from django.conf import settings
 from django.core.mail import EmailMessage
-
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 from .models import EmailLog
 
 
@@ -53,3 +53,50 @@ def send_invalid_records_email(user_email, excel_path, upload_id):
 
         if os.path.exists(excel_path):
             os.remove(excel_path)
+            
+        
+# Forgot Email Task.
+@shared_task
+def send_password_reset_email(
+
+    email,
+
+    reset_link,
+
+):
+
+    subject = "Reset Your Password"
+
+    html = render_to_string(
+
+        "password_reset_email.html",
+
+        {
+
+            "reset_link": reset_link,
+
+        },
+
+    )
+
+    message = EmailMultiAlternatives(
+
+        subject,
+
+        "Click the link below to reset your password.",
+
+        settings.DEFAULT_FROM_EMAIL,
+
+        [email],
+
+    )
+
+    message.attach_alternative(
+
+        html,
+
+        "text/html",
+
+    )
+
+    message.send()

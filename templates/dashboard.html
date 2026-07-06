@@ -21,36 +21,73 @@ Dashboard
 
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3>Student Excel Upload Dashboard</h3>
-        <a href="{% url 'logout' %}" class="btn btn-danger">Logout</a>
+
+    <div>
+        <h3 class="fw-bold mb-0">Student Excel Upload Dashboard</h3>
+        <small class="text-muted">Manage your uploaded Excel files</small>
     </div>
 
-    <!-- Upload Form -->
-    <div class="card shadow mb-4">
-        <div class="card-header bg-primary text-white">
-            Upload Excel File
-        </div>
-        <div class="card-body">
-            <form method="POST" enctype="multipart/form-data">
-                {% csrf_token %}
-                <div class="row g-2">
-                    <div class="col-md-9">
-                        <input
-                            type="file"
-                            name="excel_file"
-                            class="form-control"
-                            accept=".xlsx,.xls"
-                            required>
-                    </div>
-                    <div class="col-md-3">
-                        <button type="submit" class="btn btn-success w-100">
-                            Upload File
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
+    <div class="d-flex gap-2">
+
+        <button class="btn btn-primary"
+                id="showUploadForm">
+            <i class="bi bi-upload"></i> Upload File
+        </button>
+
+        <a href="{% url 'logout' %}" class="btn btn-danger">
+            Logout
+        </a>
+
     </div>
+
+</div>
+
+    <!-- Upload Form -->
+<div class="card shadow mb-4 d-none" id="uploadCard">
+
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+
+        <span>Upload Excel File</span>
+
+        <button type="button"
+                class="btn btn-sm btn-light"
+                id="hideUploadForm">
+            ✕
+        </button>
+
+    </div>
+
+    <div class="card-body">
+
+        <form method="POST" enctype="multipart/form-data">
+
+            {% csrf_token %}
+
+            <div class="row g-3 align-items-center">
+
+                <div class="col-md-9">
+                    <input
+                        type="file"
+                        name="excel_file"
+                        class="form-control"
+                        accept=".xlsx,.xls"
+                        required>
+                </div>
+
+                <div class="col-md-3">
+                    <button type="submit"
+                            class="btn btn-success w-100">
+                        Upload
+                    </button>
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
 
     <!-- Invalid Rows -->
     {% if invalid_rows %}
@@ -94,6 +131,32 @@ Dashboard
     </div>
     {% endif %}
 
+    <!-- Email Sent Modal -->
+<div class="modal fade" id="emailSentModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">Success</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                We have sent the invalid rows to your registered email.
+            </div>
+
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-success"
+                        data-bs-dismiss="modal">
+                    OK
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
     <!-- Uploaded Files -->
     <h4 class="mb-3">My Uploaded Files</h4>
     <div class="row">
@@ -126,17 +189,52 @@ Dashboard
 
 <script>
 $(document).ready(function () {
+
+    // Show Upload Form
+$("#showUploadForm").click(function () {
+
+    $("#uploadCard")
+        .removeClass("d-none")
+        .hide()
+        .slideDown(300);
+
+});
+
+// Hide Upload Form
+$("#hideUploadForm").click(function () {
+
+    $("#uploadCard").slideUp(300, function () {
+        $(this).addClass("d-none");
+    });
+
+});
+
     $("#toggleTable").click(function () {
-        $("#invalidRowsTable").slideToggle(400);
 
         if ($(this).text().trim() === "Show Errors") {
+
+            $("#invalidRowsTable").slideDown(400);
             $(this).text("Hide Errors");
             $(this).removeClass("btn-light").addClass("btn-secondary");
+
         } else {
+
+            // Hide the table
+            $("#invalidRowsTable").slideUp(400);
+
+            // Change button back
             $(this).text("Show Errors");
             $(this).removeClass("btn-secondary").addClass("btn-light");
+
+            // Popup message
+            setTimeout(function () {
+                alert("We have sent the invalid rows to your registered email.");
+            }, 450);
+
         }
+
     });
+
 });
 </script>
 {% endblock %}

@@ -13,17 +13,28 @@ from django.db.models import Count
 from django.db import connection
 from django.db import transaction
 from django.utils.http import url_has_allowed_host_and_scheme
+#-----------------------------------------------
 #celery import
 import os
 import uuid
-
 from django.conf import settings
-
 from .tasks import send_invalid_records_email
+#-----------------------------------------------
+# Forgot Email Import
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.utils.http import urlsafe_base64_encode
+from django.utils.http import urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.urls import reverse
+from .tasks import send_password_reset_email
+from django.utils.encoding import force_str
+from django.contrib.auth.hashers import make_password
+#------------------------------------------------
 
-# Create your views.
-# def home(request):
-#     return render(request,'home.html')
+
+# Home view.
+def home(request):
+    return render(request,'home.html')
 
 
 # Login page View
@@ -395,16 +406,75 @@ def update_student(request, id):
 
     if request.method == "POST":
 
-        student.studentname = str(request.POST.get("studentname")).strip()
-        student.email = str(request.POST.get("email")).strip()
-        student.course = str(request.POST.get("course")).strip()
-        student.department = str(request.POST.get("department","")).strip()
+        studentname = request.POST.get("studentname", "").strip()
+        email = request.POST.get("email", "").strip()
+        course = request.POST.get("course", "").strip()
+        department = request.POST.get("department", "").strip()
+
+        # -----------------------
+        # Name Validation
+        # -----------------------
+        if not studentname:
+            messages.error(request, "Student Name is required.")
+            return redirect("student_records", upload_id=student.upload.id)
+
+        if len(studentname) > 100:
+            messages.error(request, "Student Name cannot exceed 100 characters.")
+            return redirect("student_records", upload_id=student.upload.id)
+
+        if not re.fullmatch(r"[A-Za-z ]+", studentname):
+            messages.error(request, "Student Name should contain only alphabets.")
+            return redirect("student_records", upload_id=student.upload.id)
+
+        # -----------------------
+        # Email Validation
+        # -----------------------
+        try:
+            validate_email(email)
+        except ValidationError:
+            messages.error(request, "Invalid Email Address.")
+            return redirect("student_records", upload_id=student.upload.id)
+
+        # Duplicate Email
+        if Student.objects.exclude(id=student.id).filter(email=email).exists():
+            messages.error(request, "Email already exists.")
+            return redirect("student_records", upload_id=student.upload.id)
+
+        # -----------------------
+        # Course Validation
+        # -----------------------
+        if not course:
+            messages.error(request, "Course is required.")
+            return redirect("student_records", upload_id=student.upload.id)
+
+        if len(course) > 100:
+            messages.error(request, "Course cannot exceed 100 characters.")
+            return redirect("student_records", upload_id=student.upload.id)
+
+        # -----------------------
+        # Department Validation
+        # -----------------------
+        if not department:
+            messages.error(request, "Department is required.")
+            return redirect("student_records", upload_id=student.upload.id)
+
+        if len(department) > 100:
+            messages.error(request, "Department cannot exceed 100 characters.")
+            return redirect("student_records", upload_id=student.upload.id)
+
+        # -----------------------
+        # Save
+        # -----------------------
+        student.studentname = studentname
+        student.email = email
+        student.course = course
+        student.department = department
 
         student.save()
 
         messages.success(request, "Student updated successfully.")
 
-        return redirect("dashboard")
+        return redirect("student_records", upload_id=student.upload.id)
 
 # delete view.
 @login_required
@@ -419,6 +489,7 @@ def delete_student(request, id):
     return redirect("dashboard")
 
 # student records view.
+@login_required
 def student_records(request, upload_id):
 
     upload = get_object_or_404(
@@ -440,6 +511,110 @@ def student_records(request, upload_id):
         }
     )
     
+    
+# Forgot_email Password View.
+def forgot_password(request):
+
+    if request.method == "POST":
+
+        email = request.POST.get("email").strip()
+
+        if not User.objects.filter(email=email).exists():
+
+            messages.error(request, "Email does not exist.")
+
+            return redirect("forgot_password")
+
+        user = User.objects.get(email=email)
+
+        # Generate reset link here
+        token = PasswordResetTokenGenerator().make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        reset_link = request.build_absolute_uri(
+            reverse(
+            "reset_password",
+            kwargs={
+                "uidb64": uid,
+                "token": token,
+                },
+            )
+        )
+        send_password_reset_email.delay(
+
+            user.email,
+
+            reset_link,
+
+        )
+        
+        messages.success(request,"Password reset link has been sent to your email.")
+        return redirect("login")
+    
+    return render(request, "forgot_password.html")
+
+# Reset Password View
+def reset_password(request, uidb64, token):
+
+    try:
+
+        uid = force_str(urlsafe_base64_decode(uidb64))
+
+        user = User.objects.get(pk=uid)
+
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+
+        user = None
+
+    if user is None:
+
+        messages.error(request, "Invalid password reset link.")
+
+        return redirect("login")
+
+    if not PasswordResetTokenGenerator().check_token(user, token):
+
+        messages.error(request, "Password reset link has expired or is invalid.")
+
+        return redirect("login")
+
+    if request.method == "POST":
+
+        password1 = request.POST.get("password1", "").strip()
+
+        password2 = request.POST.get("password2", "").strip()
+
+        if not password1:
+
+            messages.error(request, "New Password is required.")
+
+            return render(request, "reset_password.html")
+
+        if not password2:
+
+            messages.error(request, "Confirm Password is required.")
+
+            return render(request, "reset_password.html")
+
+        if password1 != password2:
+
+            messages.error(request, "Passwords do not match.")
+
+            return render(request, "reset_password.html")
+
+        user.password = make_password(password1)
+
+        user.save()
+
+        messages.success(
+            request,
+            "Password changed successfully. Please login."
+        )
+
+        return redirect("login")
+
+    return render(request, "reset_password.html")
+#--------------------------------------------------------------------------------------------------
+
 # 404 and 500 error views
 def custom_404(request, exception):
     return render(request, "404.html", status=404)
