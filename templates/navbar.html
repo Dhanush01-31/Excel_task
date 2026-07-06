@@ -42,21 +42,21 @@
 
         .btn-login:hover{
             background:#fff;
-            color:#0d6efd;
+            color: black;
         }
 
         .btn-register{
-            color:#000;
+            color:#fff;
+            border:2px solid #fff;
             border-radius:30px;
             padding:8px 22px;
-            font-weight:600;
+            font-weight:500;
             transition:.3s;
         }
 
         .btn-register:hover{
             background:#fff;
-            color: #0d6efd;
-            transform:translateY(-2px);
+            color: black;
         }
 
         .navbar-toggler{
@@ -115,7 +115,7 @@
                         Login
                     </a>
 
-                    <a href="{% url 'register' %}" class="btn btn-register text-light btn-outline-light">
+                    <a href="{% url 'register' %}" class="btn btn-register  btn-outline-light">
                         Register
                     </a>
                     {% else %}
