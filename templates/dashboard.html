@@ -5,13 +5,101 @@ Dashboard
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<style>
+    body {
+        background: #f4f7fb;
+    }
 
-    <!-- Messages -->
+    .dashboard-hero {
+        background: linear-gradient(135deg, #0d6efd 0%, #6610f2 100%);
+        color: #fff;
+        border-radius: 1.5rem;
+        box-shadow: 0 15px 35px rgba(13, 110, 253, .15);
+    }
+
+    .stat-card {
+        border: 0;
+        border-radius: 1rem;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, .06);
+        transition: .3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 14px 30px rgba(0, 0, 0, .10);
+    }
+
+    .upload-card,
+    .files-card,
+    .invalid-card {
+        border: 0;
+        border-radius: 1rem;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, .06);
+    }
+
+    .upload-card .card-header {
+        background: linear-gradient(90deg, #0d6efd, #0056d6);
+        color: #fff;
+        border: 0;
+    }
+
+    .invalid-card .card-header {
+        background: linear-gradient(90deg, #dc3545, #bb2d3b);
+        color: #fff;
+        border: 0;
+    }
+
+    .file-card {
+        border: 0;
+        border-radius: 1rem;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, .06);
+        transition: .3s ease;
+        overflow: hidden;
+    }
+
+    .file-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 14px 30px rgba(0, 0, 0, .10);
+    }
+
+    .upload-badge {
+        width: 54px;
+        height: 54px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, .15);
+        font-size: 1.35rem;
+    }
+
+    .page-title {
+        font-weight: 800;
+        letter-spacing: .2px;
+    }
+
+    .soft-text {
+        color: rgba(255, 255, 255, .8);
+    }
+
+    .icon-circle {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 1.2rem;
+    }
+</style>
+
+<div class="container py-4">
+
     {% if messages %}
     <div class="mb-3">
         {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
             {{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -19,16 +107,64 @@ Dashboard
     </div>
     {% endif %}
 
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3>Student Excel Upload Dashboard</h3>
-        <a href="{% url 'logout' %}" class="btn btn-danger">Logout</a>
-    </div>
+    <section class="dashboard-hero p-4 p-md-5 mb-4">
+        <div class="row align-items-center g-3">
+            <div class="col-md-8">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="upload-badge">📊</div>
+                    <div>
+                        <h3 class="page-title mb-0">Student Excel Upload Dashboard</h3>
+                        <div class="soft-text">Upload files, review errors, and manage records in one place.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <a href="{% url 'logout' %}" class="btn btn-light btn-lg px-4 rounded-pill fw-semibold">Logout</a>
+            </div>
+        </div>
+    </section>
 
-    <!-- Upload Form -->
-    <div class="card shadow mb-4">
-        <div class="card-header bg-primary text-white">
-            Upload Excel File
+    {% if uploads %}
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card stat-card p-3">
+                <div class="d-flex align-items-center">
+                    <div class="icon-circle bg-primary me-3">📁</div>
+                    <div>
+                        <div class="text-muted">Total Uploads</div>
+                        <div class="fs-4 fw-bold">{{ uploads|length }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card p-3">
+                <div class="d-flex align-items-center">
+                    <div class="icon-circle bg-success me-3">✅</div>
+                    <div>
+                        <div class="text-muted">Valid Files</div>
+                        <div class="fs-4 fw-bold">{{ uploads|length }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card p-3">
+                <div class="d-flex align-items-center">
+                    <div class="icon-circle bg-warning me-3">⚠️</div>
+                    <div>
+                        <div class="text-muted">Invalid Rows</div>
+                        <div class="fs-4 fw-bold">{{ invalid_rows|length|default:0 }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card upload-card mb-4">
+        <div class="card-header py-3">
+            <strong>Upload Excel File</strong>
         </div>
         <div class="card-body">
             <form method="POST" enctype="multipart/form-data">
@@ -38,12 +174,12 @@ Dashboard
                         <input
                             type="file"
                             name="excel_file"
-                            class="form-control"
+                            class="form-control form-control-lg"
                             accept=".xlsx,.xls"
                             required>
                     </div>
                     <div class="col-md-3">
-                        <button type="submit" class="btn btn-success w-100">
+                        <button type="submit" class="btn btn-success btn-lg w-100">
                             Upload File
                         </button>
                     </div>
@@ -52,24 +188,22 @@ Dashboard
         </div>
     </div>
 
-    <!--Invalid rows POP UP message-->
-    <div id="emailSuccessMessage" class="alert alert-success alert-dismissible fade d-none" role="alert">
-    <strong>Success!</strong> We have sent the invalid rows to the user.
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div id="emailSuccessMessage" class="alert alert-success alert-dismissible fade d-none shadow-sm" role="alert">
+        <strong>Success!</strong> We have sent the invalid rows to the user.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 
-    <!-- Invalid Rows -->
     {% if invalid_rows %}
-    <div class="card shadow mb-4" id="invalidCard">
-        <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
-            <span>Invalid Records ({{ invalid_rows|length }})</span>
-            <button class="btn btn-light btn-sm" id="toggleTable" type="button">
+    <div class="card invalid-card mb-4" id="invalidCard">
+        <div class="card-header d-flex justify-content-between align-items-center py-3">
+            <strong>Invalid Records ({{ invalid_rows|length }})</strong>
+            <button class="btn btn-light btn-sm rounded-pill px-3" id="toggleTable" type="button">
                 Show Errors
             </button>
         </div>
         <div class="card-body" id="invalidRowsTable" style="display:none;">
             <div class="table-responsive">
-                <table class="table table-bordered table-striped table-hover align-middle">
+                <table class="table table-striped table-hover align-middle">
                     <thead class="table-dark">
                         <tr>
                             <th>Row</th>
@@ -90,7 +224,7 @@ Dashboard
                             <td>{{ row.email }}</td>
                             <td>{{ row.course }}</td>
                             <td>{{ row.department }}</td>
-                            <td class="text-danger fw-bold">{{ row.error }}</td>
+                            <td class="text-danger fw-semibold">{{ row.error }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -100,29 +234,30 @@ Dashboard
     </div>
     {% endif %}
 
-    <!-- Uploaded Files -->
-    <h4 class="mb-3">My Uploaded Files</h4>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0 fw-bold">My Uploaded Files</h4>
+    </div>
+
     <div class="row">
         {% for upload in uploads %}
         <div class="col-md-4 mb-4">
             <a href="{% url 'student_records' upload.id %}" class="text-decoration-none text-dark">
-                <div class="card shadow h-100 border-0">
-                    <div class="card-body">
-                        <h5 class="card-title">📄 {{ upload.filename }}</h5>
-                        <hr>
-                        <p><strong>Uploaded On:</strong><br>{{ upload.uploaded_at|date:"d M Y" }}</p>
-                        <p><strong>Time:</strong><br>{{ upload.uploaded_at|time:"h:i A" }}</p>
-                        <p><strong>Total Records:</strong> {{ upload.total_records }}</p>
+                <div class="card file-card h-100">
+                    <div class="card-body p-4">
+                        <h5 class="card-title fw-bold mb-3">📄 {{ upload.filename }}</h5>
+                        <p class="mb-2"><strong>Uploaded On:</strong><br>{{ upload.uploaded_at|date:"d M Y" }}</p>
+                        <p class="mb-2"><strong>Time:</strong><br>{{ upload.uploaded_at|time:"h:i A" }}</p>
+                        <p class="mb-0"><strong>Total Records:</strong> {{ upload.total_records }}</p>
                     </div>
-                    <div class="card-footer bg-white text-center">
-                        <span class="btn btn-primary w-100">View Records</span>
+                    <div class="card-footer bg-white border-0 p-3">
+                        <span class="btn btn-primary w-100 rounded-pill">View Records</span>
                     </div>
                 </div>
             </a>
         </div>
         {% empty %}
         <div class="col-12">
-            <div class="alert alert-info text-center">
+            <div class="alert alert-info text-center shadow-sm">
                 No Excel files uploaded yet.
             </div>
         </div>
@@ -132,34 +267,16 @@ Dashboard
 
 <script>
 $(document).ready(function () {
-
     $("#toggleTable").click(function () {
-
         if ($(this).text().trim() === "Show Errors") {
-
             $("#invalidRowsTable").slideDown(400);
-
-            $(this)
-                .text("Hide Errors")
-                .removeClass("btn-light")
-                .addClass("btn-secondary");
-
+            $(this).text("Hide Errors").removeClass("btn-light").addClass("btn-secondary");
         } else {
-
-            // Hide the entire invalid rows card
             $("#invalidCard").fadeOut(500, function () {
-
-                // Show success popup
-                $("#emailSuccessMessage")
-                    .removeClass("d-none")
-                    .addClass("show");
-
+                $("#emailSuccessMessage").removeClass("d-none").addClass("show");
             });
-
         }
-
     });
-
 });
 </script>
 {% endblock %}

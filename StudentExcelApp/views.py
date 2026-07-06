@@ -296,7 +296,7 @@ def dashboard(request):
                 continue
 
             if not validate_course(course):
-                invalid_rows.append({**base_row, "error": "Invalid Course. Example: MCA or BCA"})
+                invalid_rows.append({**base_row, "error": "Invalid Course. Example: BTECH or BSC without a dot"})
                 continue
 
             if not validate_department(department):
@@ -396,17 +396,19 @@ def logout_view(request):
 
     messages.success(request, "Logged out Successfully.")
 
-    return redirect("login")
+    return redirect("home")
 
 # update view.
 from django.shortcuts import get_object_or_404
 
 @login_required
 def update_student(request, id):
-
+    
     student = get_object_or_404(Student, id=id)
 
     if request.method == "POST":
+        print("URL ID:", id)
+        print("Student ID:", student.id)
 
         studentname = request.POST.get("studentname", "").strip()
         email = request.POST.get("email", "").strip()
@@ -438,7 +440,7 @@ def update_student(request, id):
             return redirect("student_records", upload_id=student.upload.id)
 
         # Duplicate Email
-        if Student.objects.exclude(id=student.id).filter(email=email).exists():
+        if Student.objects.exclude(id=student.id).filter(email__iexact=email.strip()).exists():
             messages.error(request, "Email already exists.")
             return redirect("student_records", upload_id=student.upload.id)
 

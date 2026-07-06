@@ -6,31 +6,118 @@ Register
 
 {% block content %}
 
-<div class="container-fluid vh-100 d-flex justify-content-center align-items-center bg-light">
+<style>
+    body {
+        background: linear-gradient(135deg, #f4f7fb 0%, #e9eefc 100%);
+    }
 
-    <div class="card shadow-lg border-0 rounded-4" style="width: 450px;">
+    .register-wrapper {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+    }
 
-        <div class="card-header bg-success text-white text-center py-3">
-            <h3 class="mb-0">Register</h3>
+    .register-card {
+        width: 100%;
+        max-width: 460px;
+        border: 0;
+        border-radius: 22px;
+        overflow: hidden;
+        box-shadow: 0 18px 45px rgba(25, 135, 84, 0.15);
+    }
+
+    .register-header {
+        background: linear-gradient(90deg, #198754, #146c43);
+        color: #fff;
+        padding: 22px;
+        text-align: center;
+    }
+
+    .register-header h3 {
+        margin: 0;
+        font-weight: 700;
+        letter-spacing: .4px;
+    }
+
+    .register-body {
+        background: #ffffff;
+        padding: 28px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .form-control {
+        border-radius: 12px;
+        padding: 12px 14px;
+        border: 1px solid #dbe3f0;
+        transition: .25s;
+    }
+
+    .form-control:focus {
+        border-color: #198754;
+        box-shadow: 0 0 0 .2rem rgba(25, 135, 84, .12);
+    }
+
+    .register-btn {
+        border: none;
+        border-radius: 12px;
+        padding: 12px;
+        font-weight: 700;
+        background: linear-gradient(90deg, #198754, #146c43);
+        transition: .25s;
+    }
+
+    .register-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(25, 135, 84, .18);
+    }
+
+    .register-footer {
+        background: #fff;
+        border-top: 1px solid #eef2f7;
+        text-align: center;
+        padding: 14px 18px;
+    }
+
+    .register-footer a {
+        color: #198754;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .register-footer a:hover {
+        text-decoration: underline;
+    }
+</style>
+
+<div class="register-wrapper">
+    <div class="card register-card">
+        <div class="register-header">
+            <h3>Register</h3>
+            <small class="text-white-50">Create your account</small>
         </div>
 
-        <div class="card-body p-4">
-
+        <div class="register-body">
             <form method="POST">
                 {% csrf_token %}
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Username<span class="text-danger">*</span></label>
-
-                <input
-        type="text"
-        class="form-control"
-        name="username"
-        placeholder="Enter Username"
-        required>
-            </div>
 
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Email<span class="text-danger">*</span></label>
+                    <label class="form-label">Username <span class="text-danger">*</span></label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        name="username"
+                        placeholder="Enter Username"
+                        required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Email <span class="text-danger">*</span></label>
                     <input
                         type="email"
                         class="form-control"
@@ -40,7 +127,7 @@ Register
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Password<span class="text-danger">*</span></label>
+                    <label class="form-label">Password <span class="text-danger">*</span></label>
                     <input
                         type="password"
                         class="form-control"
@@ -50,7 +137,7 @@ Register
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label fw-bold">Confirm Password<span class="text-danger">*</span></label>
+                    <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
                     <input
                         type="password"
                         class="form-control"
@@ -59,24 +146,17 @@ Register
                         required>
                 </div>
 
-                <button type="submit" class="btn btn-success w-100">
+                <button type="submit" class="btn btn-success register-btn w-100">
                     Register
                 </button>
-
             </form>
-
         </div>
 
-        <div class="card-footer text-center bg-white">
+        <div class="register-footer">
             Already have an account?
-            <a href="{% url 'login' %}" class="text-decoration-none">
-                Login
-            </a>
+            <a href="{% url 'login' %}">Login</a>
         </div>
-
     </div>
-
-
 </div>
 
 {% endblock %}

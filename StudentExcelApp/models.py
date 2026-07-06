@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from simple_history.models import HistoricalRecords
 
 #upload models
 class UploadFile(models.Model):
@@ -22,6 +23,8 @@ class Student(models.Model):
     email = models.EmailField()
     course = models.CharField(max_length=100)
     department = models.CharField(max_length=100)
+    
+    history = HistoricalRecords()
 
     def __str__(self):
         return self.studentname
