@@ -194,7 +194,7 @@ def dashboard(request):
         .annotate(total_records=Count("students"))
         .order_by("-uploaded_at")
     )
-
+    invalid_rows = request.session.pop("invalid_rows", [])
     expected_columns = [
         "studentid",
         "studentname",
@@ -208,21 +208,24 @@ def dashboard(request):
 
         if not excel_file:
             messages.error(request, "Please choose an Excel file.")
-            return render(request, "dashboard.html", {"uploads": uploads})
+            return render(request, "dashboard.html", {"uploads": uploads,
+                                                      "invalid_rows" : invalid_rows})
 
         if not excel_file.name.lower().endswith((".xlsx", ".xls")):
             messages.error(request, "Only Excel files are allowed.")
-            return render(request, "dashboard.html", {"uploads": uploads})
+            return render(request, "dashboard.html", {"uploads": uploads,"invalid_rows" : invalid_rows})
 
         try:
             df = pd.read_excel(excel_file, sheet_name=0)
         except Exception:
             messages.error(request, "Unable to read the Excel file.")
-            return render(request, "dashboard.html", {"uploads": uploads})
+            return render(request, "dashboard.html", {"uploads": uploads,
+                                                      "invalid_rows" : invalid_rows})
 
         if df.empty:
             messages.error(request, "The uploaded Excel file is empty.")
-            return render(request, "dashboard.html", {"uploads": uploads})
+            return render(request, "dashboard.html", {"uploads": uploads,
+                                                      "invalid_rows" : invalid_rows})
 
         df.columns = df.columns.astype(str).str.strip().str.lower()
 
@@ -231,7 +234,8 @@ def dashboard(request):
                 request,
                 f"Invalid template. Expected columns in this order: {', '.join(expected_columns)}"
             )
-            return render(request, "dashboard.html", {"uploads": uploads})
+            return render(request, "dashboard.html", {"uploads": uploads,
+                                                      "invalid_rows" : invalid_rows})
 
         seen_student_ids = set()
         invalid_rows = []
@@ -377,14 +381,12 @@ def dashboard(request):
             .annotate(total_records=Count("students"))
             .order_by("-uploaded_at")
         )
+        if invalid_rows:
+            request.session["invalid_rows"] = invalid_rows
+        return redirect("dashboard")
 
-        context = {
-            "uploads": uploads,
-            "invalid_rows": invalid_rows,
-        }
-        return render(request, "dashboard.html", context)
-
-    return render(request, "dashboard.html", {"uploads": uploads})
+    return render(request, "dashboard.html", {"uploads": uploads,
+                                              "invalid_rows" : invalid_rows})
 
 
 # Logout View
