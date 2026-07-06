@@ -45,110 +45,142 @@ def login_page(request):
 
     if request.method == "POST":
 
-        login_input = request.POST.get("login")
-
+        login_input = request.POST.get("login", "").strip()
         password = request.POST.get("password")
 
-        # Check whether the user entered an email
+        username = login_input
+
+        # User entered email
         if "@" in login_input:
 
             try:
-                user = User.objects.get(email=login_input)
-
+                user = User.objects.get(email__iexact=login_input)
                 username = user.username
-
             except User.DoesNotExist:
-
                 username = login_input
 
-        else:
-
-            username = login_input
-
         user = authenticate(
-
             request,
-
             username=username,
-
             password=password
-
         )
 
         if user:
 
             login(request, user)
 
-            next_url = request.GET.get("next") or request.POST.get("next")
-            
+            next_url = request.POST.get("next") or request.GET.get("next")
+
             if next_url and url_has_allowed_host_and_scheme(
                 next_url,
                 allowed_hosts={request.get_host()},
                 require_https=request.is_secure(),
-                ):
+            ):
                 return redirect(next_url)
-            return redirect('dashboard')
-        messages.error(
-            request,
-            "Invalid Username/Email or Password."
-        )
+
+            return redirect("dashboard")
+
+        messages.error(request, "Invalid Email or Password.")
 
     return render(request, "login.html")
 
 # Register Page VIew
 def register(request):
+
     if request.user.is_authenticated:
         return redirect("dashboard")
+
     if request.method == "POST":
-        username = request.POST.get("username").strip()
-        email = request.POST.get("email").strip()
+
+        first_name = request.POST.get("first_name", "").strip()
+        last_name = request.POST.get("last_name", "").strip()
+        email = request.POST.get("email", "").strip().lower()
 
         password = request.POST.get("password")
         confirm_password = request.POST.get("confirm_password")
 
+        # ------------------------
+        # First Name Validation
+        # ------------------------
+        if not first_name:
+            messages.error(request, "First name is required.")
+            return redirect("register")
+
+        if not re.fullmatch(r"[A-Za-z ]+", first_name):
+            messages.error(request, "First name should contain only letters.")
+            return redirect("register")
+
+        # ------------------------
+        # Last Name Validation
+        # ------------------------
+        if not last_name:
+            messages.error(request, "Last name is required.")
+            return redirect("register")
+
+        if not re.fullmatch(r"[A-Za-z ]+", last_name):
+            messages.error(request, "Last name should contain only letters.")
+            return redirect("register")
+
+        # ------------------------
+        # Email Validation
+        # ------------------------
         try:
             validate_email(email)
         except ValidationError:
-            messages.error(request,"Enter a Valid Email")
-            return redirect('register')
+            messages.error(request, "Enter a valid email address.")
+            return redirect("register")
 
         allowed_domains = (
-            '@gmail.com',
-            '@yahoo.com',
-            '@email.com'
+            "@gmail.com",
+            "@yahoo.com",
+            "@email.com",
         )
 
-        if not email.lower().endswith(allowed_domains):
-            messages.error(request,"Enter A valid domain name Like @gmail,@yahoo and @email.com")
-            return redirect('register')
-
-        if User.objects.filter(email=email).exists():
-
+        if not email.endswith(allowed_domains):
             messages.error(
                 request,
-                "Email already registered."
+                "Only Gmail, Yahoo and Email.com addresses are allowed."
             )
-
             return redirect("register")
 
-        
-        if User.objects.filter(username=username).exists():
-            messages.error(request,"User Already Exist")
+        if User.objects.filter(email=email).exists():
+            messages.error(request, "Email already registered.")
             return redirect("register")
+
+        # ------------------------
+        # Password Validation
+        # ------------------------
         
 
         if password != confirm_password:
-            messages.error(request,"Password Mismatch")
+            messages.error(request, "Passwords do not match.")
+            return redirect("register")
+
+        # ------------------------
+        # Username from Email
+        # ------------------------
+        username = email.split("@")[0]
+
+        # If username already exists,
+        # append number automatically
+        if User.objects.filter(username=username).exists():
+            messages.error(request,"Username Already Exist")
             return redirect('register')
-        
+        # ------------------------
+        # Create User
+        # ------------------------
         User.objects.create_user(
             username=username,
+            first_name=first_name,
+            last_name=last_name,
             email=email,
-            password=password
+            password=password,
         )
-        messages.success(request,"Registration Sucessfully")
-        return redirect('login')
-    return render(request,'register.html')
+
+        messages.success(request, "Registration successful. Please login.")
+        return redirect("login")
+
+    return render(request, "register.html")
 
 # Validators
 def validate_student_name(name):
