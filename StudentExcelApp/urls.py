@@ -43,10 +43,6 @@ urlpatterns = [
         name="password_reset_complete",
     ),
     
-    
-    # path("admin-login/", admin_login, name="admin_login"),
-    # path("admin-dashboard/", admin_dashboard, name="admin_dashboard"),
-    # path("admin-logout/", admin_logout, name="admin_logout"),
 
     # path("forgot-password/",forgot_password,name="forgot_password",),
     # path("reset-password/<uidb64>/<token>/",reset_password,name="reset_password",),
