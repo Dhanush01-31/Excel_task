@@ -244,7 +244,7 @@ def dashboard(request):
             return render(request, "dashboard.html", {"uploads": uploads,
                                                       "invalid_rows" : invalid_rows})
 
-        if not excel_file.name.lower().endswith((".xlsx", ".xls")):
+        if not excel_file.name.lower().endswith((".xlsx", ".xls",".csv")):
             messages.error(request, "Only Excel files are allowed.")
             return render(request, "dashboard.html", {"uploads": uploads,"invalid_rows" : invalid_rows})
 
@@ -260,15 +260,15 @@ def dashboard(request):
             return render(request, "dashboard.html", {"uploads": uploads,
                                                       "invalid_rows" : invalid_rows})
 
-        df.columns = df.columns.astype(str).str.strip().str.lower()
+        df.columns = df.columns.str.strip().str.lower().str.replace(" ", "")
 
-        if list(df.columns) != expected_columns:
-            messages.error(
-                request,
-                f"Invalid template. Expected columns in this order: {', '.join(expected_columns)}"
-            )
-            return render(request, "dashboard.html", {"uploads": uploads,
-                                                      "invalid_rows" : invalid_rows})
+        # if list(df.columns) != expected_columns:
+        #     messages.error(
+        #         request,
+        #         f"Invalid template. Expected columns in this order: {', '.join(expected_columns)}"
+        #     )
+        #     return render(request, "dashboard.html", {"uploads": uploads,
+        #                                               "invalid_rows" : invalid_rows})
 
         seen_student_ids = set()
         invalid_rows = []

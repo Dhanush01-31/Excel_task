@@ -54,7 +54,7 @@ Student Records
     }
 
     .modal-header.edit-header {
-        background: linear-gradient(90deg, #ffc107, #ffb300);
+        background: linear-gradient(90deg, #0d6efd, #0d6efd);
         color: #212529;
         border-bottom: 0;
     }
@@ -66,13 +66,19 @@ Student Records
 
 <div class="container py-4">
 
+    <div class="card-footer bg-light text-end p-3">
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary rounded-pill px-4">
+                ← Back to Dashboard
+            </a>
+        </div>  
+
     <div class="card records-card">
         <div class="card-header records-header p-4">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                 <div>
                     <h3 class="page-title mb-1">
                         <i class="bi bi-file-earmark-excel-fill me-2"></i>
-                        {{ upload.filename }}
+                        Student Records
                     </h3>
                     <div class="small text-white-50">Uploaded Student Records</div>
                 </div>
@@ -105,10 +111,10 @@ Student Records
                             <td>
                                 <span class="text-dark fw-bold
                                  rounded-pill px-3 py-2">
-                                    {{ student.studentid }}
+                                    {{ student.studentid|upper }}
                                 </span>
                             </td>
-                            <td class="">{{ student.studentname }}</td>
+                            <td>{{ student.studentname }}</td>
                             <td>{{ student.email }}</td>
                             <td>{{ student.course }}</td>
                             <td>{{ student.department }}</td>
@@ -144,12 +150,6 @@ Student Records
                 </table>
             </div>
         </div>
-
-        <div class="card-footer bg-light text-end p-3">
-            <a href="{% url 'dashboard' %}" class="btn btn-secondary rounded-pill px-4">
-                ← Back to Dashboard
-            </a>
-        </div>
     </div>
 </div>
 
@@ -161,7 +161,7 @@ Student Records
                 {% csrf_token %}
 
                 <div class="modal-header edit-header">
-                    <h5 class="modal-title fw-bold mb-0">Edit Student</h5>
+                    <h5 class="modal-title text-light fw-bold mb-0">Edit Student</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
