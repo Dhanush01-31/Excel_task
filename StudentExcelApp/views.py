@@ -316,24 +316,12 @@ def dashboard(request):
                 invalid_rows.append({**base_row, "error": "Department is mandatory"})
                 continue
 
-            if not validate_student_id(student_id):
-                invalid_rows.append({**base_row, "error": "Invalid Student ID. Example: STU001"})
-                continue
-
-            if not validate_student_name(student_name):
-                invalid_rows.append({**base_row, "error": "Invalid Student Name. Example: Ashokkumar"})
-                continue
-
             if not validate_student_email(email):
                 invalid_rows.append({**base_row, "error": "Invalid Email. Example: joe234@gmail.com"})
                 continue
 
-            if not validate_course(course):
-                invalid_rows.append({**base_row, "error": "Invalid Course. Example: BTECH or BSC without a dot"})
-                continue
-
-            if not validate_department(department):
-                invalid_rows.append({**base_row, "error": "Invalid Department. Example: Mathematics"})
+            if Student.objects.filter(email__iexact=email).exists():
+                invalid_rows.append({**base_row, "error": "Email already exists in database."})
                 continue
 
             if student_id in seen_student_ids:
@@ -455,13 +443,13 @@ def update_student(request, id):
             messages.error(request, "Student Name is required.")
             return redirect("student_records", upload_id=student.upload.id)
 
-        if len(studentname) > 100:
-            messages.error(request, "Student Name cannot exceed 100 characters.")
-            return redirect("student_records", upload_id=student.upload.id)
+        # if len(studentname) > 100:
+        #     messages.error(request, "Student Name cannot exceed 100 characters.")
+        #     return redirect("student_records", upload_id=student.upload.id)
 
-        if not re.fullmatch(r"[A-Za-z ]+", studentname):
-            messages.error(request, "Student Name should contain only alphabets.")
-            return redirect("student_records", upload_id=student.upload.id)
+        # if not re.fullmatch(r"[A-Za-z ]+", studentname):
+        #     messages.error(request, "Student Name should contain only alphabets.")
+        #     return redirect("student_records", upload_id=student.upload.id)
 
         # -----------------------
         # Email Validation
@@ -479,13 +467,13 @@ def update_student(request, id):
             messages.error(request, "Course is required.")
             return redirect("student_records", upload_id=student.upload.id)
 
-        if len(course) > 12:
-            messages.error(request, "Course cannot exceed 12 characters.")
-            return redirect("student_records", upload_id=student.upload.id)
+        # if len(course) > 12:
+        #     messages.error(request, "Course cannot exceed 12 characters.")
+        #     return redirect("student_records", upload_id=student.upload.id)
         
-        if not re.fullmatch(r"[A-Za-z ]+", course):
-            messages.error(request, "Course Name should contain only alphabets.")
-            return redirect("student_records", upload_id=student.upload.id)
+        # if not re.fullmatch(r"[A-Za-z ]+", course):
+        #     messages.error(request, "Course Name should contain only alphabets.")
+        #     return redirect("student_records", upload_id=student.upload.id)
 
         # -----------------------
         # Department Validation
@@ -494,14 +482,14 @@ def update_student(request, id):
             messages.error(request, "Department is required.")
             return redirect("student_records", upload_id=student.upload.id)
 
-        if len(department) > 30:
-            messages.error(request, "Department cannot exceed 30 characters.")
-            return redirect("student_records", upload_id=student.upload.id)
+        # if len(department) > 30:
+        #     messages.error(request, "Department cannot exceed 30 characters.")
+        #     return redirect("student_records", upload_id=student.upload.id)
 
-        if not re.fullmatch(r"[A-Za-z ]+", department):
-            messages.error(request, "Department should contain only alphabets.")
-            return redirect("student_records", upload_id=student.upload.id)
-        # -----------------------
+        # if not re.fullmatch(r"[A-Za-z ]+", department):
+        #     messages.error(request, "Department should contain only alphabets.")
+        #     return redirect("student_records", upload_id=student.upload.id)
+        # # -----------------------
         # Save
         # -----------------------
         student.studentname = studentname

@@ -17,7 +17,7 @@ Student Records
     }
 
     .records-header {
-        background: linear-gradient(90deg, #0d6efd, #0056d6);
+        background: linear-gradient(90deg, #0d6efd, #0d6efd);
         color: #fff;
         border: 0;
         border-top-left-radius: 1rem;
@@ -25,7 +25,7 @@ Student Records
     }
 
     .page-title {
-        font-weight: 700;
+        font-weight: 400;
     }
 
     .badge-soft {
@@ -103,11 +103,12 @@ Student Records
                         <tr>
                             <td>{{ forloop.counter }}</td>
                             <td>
-                                <span class="badge student-pill rounded-pill px-3 py-2">
+                                <span class="text-dark fw-bold
+                                 rounded-pill px-3 py-2">
                                     {{ student.studentid }}
                                 </span>
                             </td>
-                            <td class="fw-semibold">{{ student.studentname }}</td>
+                            <td class="">{{ student.studentname }}</td>
                             <td>{{ student.email }}</td>
                             <td>{{ student.course }}</td>
                             <td>{{ student.department }}</td>

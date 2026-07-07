@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-
+{% load static %}
 {% block title %}
 Dashboard
 {% endblock %}
@@ -53,18 +53,87 @@ Dashboard
         border: 0;
     }
 
-    .file-card {
-        border: 0;
-        border-radius: 1rem;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, .06);
-        transition: .3s ease;
-        overflow: hidden;
-    }
+    .file-card{
+    border: none;
+    border-radius: 18px;
+    overflow: hidden;
+    transition: all .35s ease;
+    box-shadow: 0 10px 30px rgba(0,0,0,.08);
+    background: #fff;
+    position: relative;
+}
 
-    .file-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 14px 30px rgba(0, 0, 0, .10);
-    }
+.file-card:hover{
+    transform: translateY(-8px);
+    box-shadow: 0 18px 40px rgba(13,110,253,.20);
+}
+
+.file-card::before{
+    content:"";
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:6px;
+    background:linear-gradient(90deg,#0d6efd,#4f9cff,#6ea8fe);
+}
+
+.file-icon{
+    width:65px;
+    height:65px;
+    border-radius:16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:30px;
+    background:#eaf3ff;
+    color:#0d6efd;
+}
+
+.file-name{
+    font-size:1.1rem;
+    font-weight:700;
+    color:#212529;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+.info-box{
+    background:#f8f9fa;
+    border-radius:12px;
+    padding:12px;
+}
+
+.info-label{
+    font-size:.8rem;
+    color:#6c757d;
+}
+
+.info-value{
+    font-weight:600;
+    color:#212529;
+}
+
+.record-badge{
+    background:#198754;
+    color:#fff;
+    padding:6px 14px;
+    border-radius:50px;
+    font-weight:600;
+    font-size:.85rem;
+}
+
+.view-btn{
+    border-radius:50px;
+    padding:10px;
+    font-weight:600;
+    transition:.3s;
+}
+
+.view-btn:hover{
+    letter-spacing:.5px;
+}
 
     .upload-badge {
         width: 52px;
@@ -112,16 +181,10 @@ Dashboard
 
 <div class="container py-4">
 
-    {% if messages %}
-    <div class="mb-3">
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        {% endfor %}
+    <div id="emailSuccessMessage" class="alert alert-success alert-dismissible fade d-none shadow-sm" role="alert">
+        <strong>Success!</strong> We have sent the invalid rows to the user.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
-    {% endif %}
 
     <section class="dashboard-hero p-4 mb-4">
         <div class="row align-items-center g-3">
@@ -135,14 +198,22 @@ Dashboard
                 </div>
             </div>
             <div class="col-md-4 text-md-end">
-                <button
-                    type="button"
-                    class="btn btn-light btn-md px-4 rounded-pill fw-semibold"
-                    data-bs-toggle="modal"
-                    data-bs-target="#uploadModal">
-                    Upload File
-                </button>
-            </div>
+
+    <a href="{% static 'templates/Student_Template.xlsx' %}"
+       class="btn btn-outline-light btn-md px-4 rounded-pill fw-semibold me-2"
+       download>
+        <i class="bi bi-download"></i> Download Template
+    </a>
+
+    <button
+        type="button"
+        class="btn btn-light btn-md px-4 rounded-pill fw-semibold"
+        data-bs-toggle="modal"
+        data-bs-target="#uploadModal">
+        Upload File
+    </button>
+
+</div>
             
         </div>
     </section>
@@ -184,11 +255,6 @@ Dashboard
         </div>
     </div>
     {% endif %}
-
-    <div id="emailSuccessMessage" class="alert alert-success alert-dismissible fade d-none shadow-sm" role="alert">
-        <strong>Success!</strong> We have sent the invalid rows to the user.
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
 
        <!-- Required Fields Card -->
 <div class="card border-0 shadow-sm mb-4">
@@ -287,31 +353,93 @@ Dashboard
         <h4 class="mb-0 fw-bold">My Uploaded Files</h4>
     </div>
 
-    <div class="row">
-        {% for upload in uploads %}
-        <div class="col-md-4 mb-4">
-            <a href="{% url 'student_records' upload.id %}" class="text-decoration-none text-dark">
-                <div class="card file-card h-100">
-                    <div class="card-body p-4">
-                        <h5 class="card-title fw-bold mb-3">📄 {{ upload.filename }}</h5>
-                        <p class="mb-2"><strong>Uploaded On:</strong><br>{{ upload.uploaded_at|date:"d M Y" }}</p>
-                        <p class="mb-2"><strong>Time:</strong><br>{{ upload.uploaded_at|time:"h:i A" }}</p>
-                        <p class="mb-0"><strong>Total Records:</strong> {{ upload.total_records }}</p>
+    <div class="row g-4">
+
+    {% for upload in uploads %}
+
+    <div class="col-lg-4 col-md-6">
+
+        <div class="card file-card h-100">
+
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between align-items-start mb-4">
+
+                    <div class="file-icon">
+                        📄
                     </div>
-                    <div class="card-footer bg-white border-0 p-3">
-                        <span class="btn btn-primary w-100 rounded-pill">View Records</span>
-                    </div>
+
+                    <span class="record-badge">
+                        {{ upload.total_records }} Records
+                    </span>
+
                 </div>
-            </a>
-        </div>
-        {% empty %}
-        <div class="col-12">
-            <div class="alert alert-info text-center shadow-sm">
-                No Excel files uploaded yet.
+
+                <h5 class="file-name mb-4">
+                    {{ upload.filename }}
+                </h5>
+
+                <div class="info-box mb-3">
+
+                    <div class="row">
+
+                        <div class="col-6">
+
+                            <div class="info-label">
+                                Uploaded
+                            </div>
+
+                            <div class="info-value">
+                                {{ upload.uploaded_at|date:"d M Y" }}
+                            </div>
+
+                        </div>
+
+                        <div class="col-6">
+
+                            <div class="info-label">
+                                Time
+                            </div>
+
+                            <div class="info-value">
+                                {{ upload.uploaded_at|time:"h:i A" }}
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
             </div>
+
+            <div class="card-footer bg-white border-0 pb-4 px-4">
+
+                <a href="{% url 'student_records' upload.id %}"
+                   class="btn btn-primary view-btn w-100">
+
+                    View Student Records →
+
+                </a>
+
+            </div>
+
         </div>
-        {% endfor %}
+
     </div>
+
+    {% empty %}
+
+    <div class="col-12">
+
+        <div class="alert alert-info text-center shadow-sm">
+            No Excel files uploaded yet.
+        </div>
+
+    </div>
+
+    {% endfor %}
+
 </div>
 
 <!-- Upload Modal -->
