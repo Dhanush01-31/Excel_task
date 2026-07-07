@@ -56,47 +56,47 @@ def send_invalid_records_email(user_email, excel_path, upload_id):
             
         
 # Forgot Email Task.
-@shared_task
-def send_password_reset_email(
+# @shared_task
+# def send_password_reset_email(
 
-    email,
+#     email,
 
-    reset_link,
+#     reset_link,
 
-):
+# ):
 
-    subject = "Reset Your Password"
+#     subject = "Reset Your Password"
 
-    html = render_to_string(
+#     html = render_to_string(
 
-        "password_reset_email.html",
+#         "password_reset_email.html",
 
-        {
+#         {
 
-            "reset_link": reset_link,
+#             "reset_link": reset_link,
 
-        },
+#         },
 
-    )
+#     )
 
-    message = EmailMultiAlternatives(
+#     message = EmailMultiAlternatives(
 
-        subject,
+#         subject,
 
-        "Click the link below to reset your password.",
+#         "Click the link below to reset your password.",
 
-        settings.DEFAULT_FROM_EMAIL,
+#         settings.DEFAULT_FROM_EMAIL,
 
-        [email],
+#         [email],
 
-    )
+#     )
 
-    message.attach_alternative(
+#     message.attach_alternative(
 
-        html,
+#         html,
 
-        "text/html",
+#         "text/html",
 
-    )
+#     )
 
-    message.send()
+#     message.send()

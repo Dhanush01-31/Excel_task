@@ -11,7 +11,7 @@ Dashboard
     }
 
     .dashboard-hero {
-        background: linear-gradient(135deg, #0d6efd 0%, #6610f2 100%);
+        background: linear-gradient(135deg, #0d6efd 0%, #0d6efd  100%);
         color: #fff;
         border-radius: 1.2rem;
         box-shadow: 0 15px 35px rgba(13, 110, 253, .15);
@@ -143,6 +143,7 @@ Dashboard
                     Upload File
                 </button>
             </div>
+            
         </div>
     </section>
 
@@ -188,6 +189,58 @@ Dashboard
         <strong>Success!</strong> We have sent the invalid rows to the user.
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
+
+       <!-- Required Fields Card -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">📋 Required Excel Format</h5>
+    </div>
+
+    <div class="card-body">
+        <p class="mb-3">
+            Your Excel file must contain the following mandatory columns:
+        </p>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped align-middle">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Column Name</th>
+                        <th>Required</th>
+                        <th>Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Student ID</td>
+                        <td><span class="badge bg-danger">Mandatory</span></td>
+                        <td>STU001</td>
+                    </tr>
+                    <tr>
+                        <td>Student Name</td>
+                        <td><span class="badge bg-danger">Mandatory</span></td>
+                        <td>John Smith</td>
+                    </tr>
+                    <tr>
+                        <td>Email</td>
+                        <td><span class="badge bg-danger">Mandatory</span></td>
+                        <td>john@example.com</td>
+                    </tr>
+                    <tr>
+                        <td>Course</td>
+                        <td><span class="badge bg-danger">Mandatory</span></td>
+                        <td>BCA</td>
+                    </tr>
+                    <tr>
+                        <td>Department</td>
+                        <td><span class="badge bg-danger">Mandatory</span></td>
+                        <td>Computer Science</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
     {% if invalid_rows %}
     <div class="card invalid-card mb-4" id="invalidCard">

@@ -21,14 +21,14 @@ from django.conf import settings
 from .tasks import send_invalid_records_email
 #-----------------------------------------------
 # Forgot Email Import
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.utils.http import urlsafe_base64_encode
-from django.utils.http import urlsafe_base64_decode
-from django.utils.encoding import force_bytes
-from django.urls import reverse
-from .tasks import send_password_reset_email
-from django.utils.encoding import force_str
-from django.contrib.auth.hashers import make_password
+# from django.contrib.auth.tokens import PasswordResetTokenGenerator
+# from django.utils.http import urlsafe_base64_encode
+# from django.utils.http import urlsafe_base64_decode
+# from django.utils.encoding import force_bytes
+# from django.urls import reverse
+# from .tasks import send_password_reset_email
+# from django.utils.encoding import force_str
+# from django.contrib.auth.hashers import make_password
 #------------------------------------------------
 
 
@@ -222,9 +222,10 @@ def validate_department(department):
 @login_required
 def dashboard(request):
     uploads = (
-        UploadFile.objects.filter(uploaded_by=request.user)
-        .annotate(total_records=Count("students"))
-        .order_by("-uploaded_at")
+    UploadFile.objects.filter(uploaded_by=request.user)
+    .annotate(total_records=Count("students"))
+    .filter(total_records__gt=0)
+    .order_by("-uploaded_at")
     )
     invalid_rows = request.session.pop("invalid_rows", [])
     expected_columns = [
@@ -471,11 +472,6 @@ def update_student(request, id):
             messages.error(request, "Invalid Email Address.")
             return redirect("student_records", upload_id=student.upload.id)
 
-        # Duplicate Email
-        if Student.objects.exclude(id=student.id).filter(email__iexact=email.strip()).exists():
-            messages.error(request, "Email already exists.")
-            return redirect("student_records", upload_id=student.upload.id)
-
         # -----------------------
         # Course Validation
         # -----------------------
@@ -483,8 +479,12 @@ def update_student(request, id):
             messages.error(request, "Course is required.")
             return redirect("student_records", upload_id=student.upload.id)
 
-        if len(course) > 100:
-            messages.error(request, "Course cannot exceed 100 characters.")
+        if len(course) > 12:
+            messages.error(request, "Course cannot exceed 12 characters.")
+            return redirect("student_records", upload_id=student.upload.id)
+        
+        if not re.fullmatch(r"[A-Za-z ]+", course):
+            messages.error(request, "Course Name should contain only alphabets.")
             return redirect("student_records", upload_id=student.upload.id)
 
         # -----------------------
@@ -494,10 +494,13 @@ def update_student(request, id):
             messages.error(request, "Department is required.")
             return redirect("student_records", upload_id=student.upload.id)
 
-        if len(department) > 100:
-            messages.error(request, "Department cannot exceed 100 characters.")
+        if len(department) > 30:
+            messages.error(request, "Department cannot exceed 30 characters.")
             return redirect("student_records", upload_id=student.upload.id)
 
+        if not re.fullmatch(r"[A-Za-z ]+", department):
+            messages.error(request, "Department should contain only alphabets.")
+            return redirect("student_records", upload_id=student.upload.id)
         # -----------------------
         # Save
         # -----------------------
@@ -518,7 +521,13 @@ def delete_student(request, id):
 
     student = get_object_or_404(Student, id=id)
 
+    upload = student.upload   # Save upload before deleting student
+
     student.delete()
+
+    # If no students remain for this upload, delete the upload record
+    if not upload.students.exists():
+        upload.delete()
 
     messages.success(request, "Student deleted successfully.")
 
@@ -549,106 +558,106 @@ def student_records(request, upload_id):
     
     
 # Forgot_email Password View.
-def forgot_password(request):
+# def forgot_password(request):
 
-    if request.method == "POST":
+#     if request.method == "POST":
 
-        email = request.POST.get("email").strip()
+#         email = request.POST.get("email").strip()
 
-        if not User.objects.filter(email=email).exists():
+#         if not User.objects.filter(email=email).exists():
 
-            messages.error(request, "Email does not exist.")
+#             messages.error(request, "Email does not exist.")
 
-            return redirect("forgot_password")
+#             return redirect("forgot_password")
 
-        user = User.objects.get(email=email)
+#         user = User.objects.get(email=email)
 
-        # Generate reset link here
-        token = PasswordResetTokenGenerator().make_token(user)
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
-        reset_link = request.build_absolute_uri(
-            reverse(
-            "reset_password",
-            kwargs={
-                "uidb64": uid,
-                "token": token,
-                },
-            )
-        )
-        send_password_reset_email.delay(
+#         # Generate reset link here
+#         token = PasswordResetTokenGenerator().make_token(user)
+#         uid = urlsafe_base64_encode(force_bytes(user.pk))
+#         reset_link = request.build_absolute_uri(
+#             reverse(
+#             "reset_password",
+#             kwargs={
+#                 "uidb64": uid,
+#                 "token": token,
+#                 },
+#             )
+#         )
+#         send_password_reset_email.delay(
 
-            user.email,
+#             user.email,
 
-            reset_link,
+#             reset_link,
 
-        )
+#         )
         
-        messages.success(request,"Password reset link has been sent to your email.")
-        return redirect("login")
+#         messages.success(request,"Password reset link has been sent to your email.")
+#         return redirect("login")
     
-    return render(request, "forgot_password.html")
+#     return render(request, "forgot_password.html")
 
-# Reset Password View
-def reset_password(request, uidb64, token):
+# # Reset Password View
+# def reset_password(request, uidb64, token):
 
-    try:
+#     try:
 
-        uid = force_str(urlsafe_base64_decode(uidb64))
+#         uid = force_str(urlsafe_base64_decode(uidb64))
 
-        user = User.objects.get(pk=uid)
+#         user = User.objects.get(pk=uid)
 
-    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+#     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
 
-        user = None
+#         user = None
 
-    if user is None:
+#     if user is None:
 
-        messages.error(request, "Invalid password reset link.")
+#         messages.error(request, "Invalid password reset link.")
 
-        return redirect("login")
+#         return redirect("login")
 
-    if not PasswordResetTokenGenerator().check_token(user, token):
+#     if not PasswordResetTokenGenerator().check_token(user, token):
 
-        messages.error(request, "Password reset link has expired or is invalid.")
+#         messages.error(request, "Password reset link has expired or is invalid.")
 
-        return redirect("login")
+#         return redirect("login")
 
-    if request.method == "POST":
+#     if request.method == "POST":
 
-        password1 = request.POST.get("password1", "").strip()
+#         password1 = request.POST.get("password1", "").strip()
 
-        password2 = request.POST.get("password2", "").strip()
+#         password2 = request.POST.get("password2", "").strip()
 
-        if not password1:
+#         if not password1:
 
-            messages.error(request, "New Password is required.")
+#             messages.error(request, "New Password is required.")
 
-            return render(request, "reset_password.html")
+#             return render(request, "reset_password.html")
 
-        if not password2:
+#         if not password2:
 
-            messages.error(request, "Confirm Password is required.")
+#             messages.error(request, "Confirm Password is required.")
 
-            return render(request, "reset_password.html")
+#             return render(request, "reset_password.html")
 
-        if password1 != password2:
+#         if password1 != password2:
 
-            messages.error(request, "Passwords do not match.")
+#             messages.error(request, "Passwords do not match.")
 
-            return render(request, "reset_password.html")
+#             return render(request, "reset_password.html")
 
-        user.password = make_password(password1)
+#         user.password = make_password(password1)
 
-        user.save()
+#         user.save()
 
-        messages.success(
-            request,
-            "Password changed successfully. Please login."
-        )
+#         messages.success(
+#             request,
+#             "Password changed successfully. Please login."
+#         )
 
-        return redirect("login")
+#         return redirect("login")
 
-    return render(request, "reset_password.html")
+#     return render(request, "reset_password.html")
 #--------------------------------------------------------------------------------------------------
 
 # 404 and 500 error views
