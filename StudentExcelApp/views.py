@@ -14,6 +14,7 @@ from django.db import connection
 from django.db import transaction
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.db.models.functions import Lower
+from django.utils import timezone
 #-----------------------------------------------
 #celery import
 import os
@@ -74,6 +75,11 @@ def login_page(request):
         if user:
 
             login(request, user)
+            
+            LoginHistory.objects.create(
+                user=user,
+                username=user.username
+            )
 
             next_url = request.POST.get("next") or request.GET.get("next")
 
@@ -442,6 +448,17 @@ def dashboard(request):
 
 # Logout View
 def logout_view(request):
+
+    if request.user.is_authenticated:
+
+        history = LoginHistory.objects.filter(
+            user=request.user,
+            logout_time__isnull=True
+        ).last()
+
+        if history:
+            history.logout_time = timezone.now()
+            history.save()
 
     logout(request)
 

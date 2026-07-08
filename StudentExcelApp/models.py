@@ -62,3 +62,22 @@ class EmailLog(models.Model):
 
     def __str__(self):
         return f"{self.to_email} - {self.email_status}"
+
+
+# Login and logout log model.
+class LoginHistory(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+    username = models.CharField(max_length=150)
+    login_time = models.DateTimeField(auto_now_add=True)
+    logout_time = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-login_time"]
+
+    def __str__(self):
+        return f"{self.username} - {self.login_time}"
