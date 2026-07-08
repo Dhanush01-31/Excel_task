@@ -20,6 +20,11 @@ import os
 import uuid
 from django.conf import settings
 from .tasks import send_invalid_records_email
+# Downlaod Excel File view.
+#--- Import 
+from django.conf import settings
+from django.http import FileResponse, Http404
+from pathlib import Path
 #-----------------------------------------------
 # Forgot Email Import
 # from django.contrib.auth.tokens import PasswordResetTokenGenerator
@@ -230,11 +235,11 @@ def dashboard(request):
     )
     invalid_rows = request.session.pop("invalid_rows", [])
     expected_columns = [
-        "studentid",
-        "studentname",
-        "email",
-        "course",
-        "department",
+        "studentid*",
+        "studentname*",
+        "email*",
+        "course*",
+        "department*",
     ]
 
     if request.method == "POST":
@@ -261,8 +266,10 @@ def dashboard(request):
             return render(request, "dashboard.html", {"uploads": uploads,
                                                       "invalid_rows" : invalid_rows})
 
-        df.columns = df.columns.str.strip().str.lower().str.replace(" ", "")
-
+        df.columns = df.columns.str.strip().str.lower().str.replace(" ", "").str.replace("*","")
+        
+        
+        # validating the exact column order also should be same in the excel sheet   
         # if list(df.columns) != expected_columns:
         #     messages.error(
         #         request,
@@ -326,10 +333,15 @@ def dashboard(request):
                 invalid_rows.append({**base_row, "error": "Email already exists in database."})
                 continue
             
+            if Student.objects.filter(studentid__iexact=student_id).exists():
+                invalid_rows.append({**base_row, "error": "studentid already exists in database."})
+                continue
+            
             
             
             # check course Datatype Should be String.
             if not validate_course(department):
+                
                 invalid_rows.append({**base_row, "error": "Course name Should contains string."})
                 continue
                 
@@ -446,9 +458,7 @@ def update_student(request, id):
     student = get_object_or_404(Student, id=id)
 
     if request.method == "POST":
-        print("URL ID:", id)
-        print("Student ID:", student.id)
-
+        
         studentname = request.POST.get("studentname", "").strip()
         email = request.POST.get("email", "").strip()
         course = request.POST.get("course", "").strip()
@@ -460,14 +470,10 @@ def update_student(request, id):
         if not studentname:
             messages.error(request, "Student Name is required.")
             return redirect("student_records", upload_id=student.upload.id)
-
-        # if len(studentname) > 100:
-        #     messages.error(request, "Student Name cannot exceed 100 characters.")
-        #     return redirect("student_records", upload_id=student.upload.id)
-
-        # if not re.fullmatch(r"[A-Za-z ]+", studentname):
-        #     messages.error(request, "Student Name should contain only alphabets.")
-        #     return redirect("student_records", upload_id=student.upload.id)
+        
+        if not validate_student_name(studentname):
+            messages.error(request,"Student Name contains only alphabet characters")
+            return redirect("student_records",upload_id=student.upload.id)
 
         # -----------------------
         # Email Validation
@@ -477,6 +483,10 @@ def update_student(request, id):
         except ValidationError:
             messages.error(request, "Invalid Email Address.")
             return redirect("student_records", upload_id=student.upload.id)
+        
+        if Student.objects.filter(email__iexact=email).exclude(id=student.id).exists():
+            messages.error(request, "Email already exists.")
+            return redirect("student_records", upload_id=student.upload.id)
 
         # -----------------------
         # Course Validation
@@ -485,14 +495,10 @@ def update_student(request, id):
             messages.error(request, "Course is required.")
             return redirect("student_records", upload_id=student.upload.id)
 
-        # if len(course) > 12:
-        #     messages.error(request, "Course cannot exceed 12 characters.")
-        #     return redirect("student_records", upload_id=student.upload.id)
+        if not validate_course(course):
+            messages.error(request,"Course Should be contains only alphabets")
+            return redirect("student_records",upload_id=student.upload.id)
         
-        # if not re.fullmatch(r"[A-Za-z ]+", course):
-        #     messages.error(request, "Course Name should contain only alphabets.")
-        #     return redirect("student_records", upload_id=student.upload.id)
-
         # -----------------------
         # Department Validation
         # -----------------------
@@ -500,16 +506,13 @@ def update_student(request, id):
             messages.error(request, "Department is required.")
             return redirect("student_records", upload_id=student.upload.id)
 
-        # if len(department) > 30:
-        #     messages.error(request, "Department cannot exceed 30 characters.")
-        #     return redirect("student_records", upload_id=student.upload.id)
-
-        # if not re.fullmatch(r"[A-Za-z ]+", department):
-        #     messages.error(request, "Department should contain only alphabets.")
-        #     return redirect("student_records", upload_id=student.upload.id)
-        # # -----------------------
-        # Save
+        if not validate_department(department):
+            messages.error(request,"Department Should be contains only alphabets")
+            return redirect("student_records",upload_id=student.upload.id)
+        
         # -----------------------
+        
+        
         student.studentname = studentname
         student.email = email
         student.course = course
@@ -672,3 +675,18 @@ def custom_404(request, exception):
 
 def custom_500(request):
     return render(request, "500.html", status=500)
+
+# downlaod_template view
+@login_required
+def download_template(request):
+    file_path = Path(settings.BASE_DIR) / "resources" / "Student_Template.xlsx"
+
+    if not file_path.exists():
+        raise Http404("Template file not found.")
+    
+
+    return FileResponse(
+        open(file_path, "rb"),
+        as_attachment=True,
+        filename="Student_Template.xlsx",
+    )

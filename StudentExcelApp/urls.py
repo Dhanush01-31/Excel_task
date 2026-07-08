@@ -11,6 +11,8 @@ urlpatterns = [
     path("update/<int:id>/", update_student, name="update_student"),
     path("delete/<int:id>/", delete_student, name="delete_student"),
     path("student-records/<int:upload_id>/",student_records,name="student_records"),
+    path("download-template/", download_template, name="download_template"),
+    
     path(
         "password-reset/",
         auth_views.PasswordResetView.as_view(
