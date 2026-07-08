@@ -380,6 +380,9 @@ Dashboard
                 </div>
 
                 <div class="modal-body p-4">
+                    <div class="mb-2">
+                        <a href="{% url 'download_template' %}" class="btn btn-primary">Download Template</a>
+                    </div>
 
                     <p class="text-muted">
                         Choose an Excel file (.xlsx or .xls) to upload and process.
@@ -389,16 +392,8 @@ Dashboard
                     <div class="alert alert-primary border rounded-3 mb-4">
                         <h6 class="fw-bold mb-3">
                             <i class="bi bi-info-circle-fill me-2"></i>
-                            Mandatory Fields
+                            Mandatory Fields are Mentioned as * in the Excel File
                         </h6>
-
-                        <ul class="mb-0 ps-3">
-                            <li><strong>Student ID</strong></li>
-                            <li><strong>Student Name</strong></li>
-                            <li><strong>Email</strong></li>
-                            <li><strong>Course</strong></li>
-                            <li><strong>Department</strong></li>
-                        </ul>
                     </div>
 
                     <!-- File Upload -->
@@ -427,8 +422,6 @@ Dashboard
                             class="btn btn-success rounded-pill px-4">
                         Upload File
                     </button>
-
-                    <a href="{% url 'download_template' %}" class="btn btn-primary">Download Template</a>
 
                 </div>
 

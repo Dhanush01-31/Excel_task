@@ -296,7 +296,6 @@ def dashboard(request):
         studentid_lower=Lower("studentid")
         ).values_list("studentid_lower", flat=True)
         )
-        print("Existing IDs:", existing_ids)
         for index, row in df.iterrows():
             row_number = index + 2
 
@@ -370,6 +369,7 @@ def dashboard(request):
                 continue
 
             valid_students.append(
+                
                 Student(
                     studentid=student_id,
                     studentname=student_name,
