@@ -13,6 +13,7 @@ from django.db.models import Count
 from django.db import connection
 from django.db import transaction
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.db.models.functions import Lower
 #-----------------------------------------------
 #celery import
 import os
@@ -276,16 +277,17 @@ def dashboard(request):
 
         uploaded_student_ids = df["studentid"].dropna().astype(str).str.strip().tolist()
         existing_ids = set(
-            Student.objects.filter(
-                upload__uploaded_by=request.user,
-                studentid__in=uploaded_student_ids,
-            ).values_list("studentid", flat=True)
+        Student.objects.filter(
+        upload__uploaded_by=request.user
+        ).annotate(
+        studentid_lower=Lower("studentid")
+        ).values_list("studentid_lower", flat=True)
         )
-
+        print("Existing IDs:", existing_ids)
         for index, row in df.iterrows():
             row_number = index + 2
 
-            student_id = "" if pd.isna(row["studentid"]) else str(row["studentid"]).strip()
+            student_id = "" if pd.isna(row["studentid"]) else str(row["studentid"]).strip().lower()
             student_name = "" if pd.isna(row["studentname"]) else str(row["studentname"]).strip()
             email = "" if pd.isna(row["email"]) else str(row["email"]).strip()
             course = "" if pd.isna(row["course"]) else str(row["course"]).strip()
@@ -323,14 +325,19 @@ def dashboard(request):
             if Student.objects.filter(email__iexact=email).exists():
                 invalid_rows.append({**base_row, "error": "Email already exists in database."})
                 continue
-
+            # check.
+            print("Current student_id:", repr(student_id))
+            print("Match:", student_id in existing_ids)
+            
             if student_id in seen_student_ids:
                 invalid_rows.append({**base_row, "error": "Duplicate Student ID in Excel file"})
                 continue
             seen_student_ids.add(student_id)
 
-            if student_id in existing_ids:
-                invalid_rows.append({**base_row, "error": "Student ID already exists in database"})
+            if Student.objects.filter(
+                upload__uploaded_by=request.user,
+                studentid__iexact=student_id).exists():
+                invalid_rows.append({**base_row,"error": "Student ID already exists in the database"})
                 continue
 
             valid_students.append(
