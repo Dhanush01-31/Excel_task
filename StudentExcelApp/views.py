@@ -325,9 +325,20 @@ def dashboard(request):
             if Student.objects.filter(email__iexact=email).exists():
                 invalid_rows.append({**base_row, "error": "Email already exists in database."})
                 continue
-            # check.
-            print("Current student_id:", repr(student_id))
-            print("Match:", student_id in existing_ids)
+            
+            
+            
+            # check course Datatype Should be String.
+            if not validate_course(department):
+                invalid_rows.append({**base_row, "error": "Course name Should contains string."})
+                continue
+                
+            # checking department Should be String.
+            if not validate_department(department):
+                invalid_rows.append({**base_row, "error": "Department Name should Contains String"})
+                continue
+            
+            
             
             if student_id in seen_student_ids:
                 invalid_rows.append({**base_row, "error": "Duplicate Student ID in Excel file"})
