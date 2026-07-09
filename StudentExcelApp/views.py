@@ -190,6 +190,10 @@ def register(request):
         )
 
         messages.success(request, "Registration successful. Please login.")
+        messages.success(
+        request,
+        f"Registration successful! Your username is: {username}"
+        )
         return redirect("login")
 
     return render(request, "register.html")

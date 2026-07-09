@@ -48,7 +48,7 @@ Dashboard
     }
 
     .invalid-card .card-header {
-        background: linear-gradient(90deg, #dc3545, #bb2d3b);
+        background: linear-gradient(90deg, #0d6efd, #0d6efd);
         color: #fff;
         border: 0;
     }
@@ -268,7 +268,7 @@ Dashboard
         <div class="card-body" id="invalidRowsTable" style="display:none;">
             <div class="table-responsive">
                 <table class="table table-striped table-hover align-middle">
-                    <thead class="table-dark">
+                    <thead class="table-primary">
                         <tr>
                             <th>Row</th>
                             <th>Student ID</th>
@@ -288,7 +288,7 @@ Dashboard
                             <td>{{ row.email }}</td>
                             <td>{{ row.course }}</td>
                             <td>{{ row.department }}</td>
-                            <td class="text-danger fw-semibold">{{ row.error }}</td>
+                            <td class="text-primary fw-semibold">{{ row.error }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -392,7 +392,7 @@ Dashboard
                     <div class="alert alert-primary border rounded-3 mb-4">
                         <h6 class="fw-bold mb-3">
                             <i class="bi bi-info-circle-fill me-2"></i>
-                            Mandatory Fields are Mentioned as * in the Excel File
+                            Mandatory Fields are Mentioned as (*) in template
                         </h6>
                     </div>
 
@@ -419,7 +419,7 @@ Dashboard
                     </button>
 
                     <button type="submit"
-                            class="btn btn-success rounded-pill px-4">
+                            class="btn btn-primary rounded-pill px-4">
                         Upload File
                     </button>
 
