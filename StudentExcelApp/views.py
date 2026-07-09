@@ -155,7 +155,7 @@ def register(request):
             )
             return redirect("register")
 
-        if User.objects.filter(email=email).exists():
+        if User.objects.filter(email__iexact=email).exists():
             messages.error(request, "Email already registered.")
             return redirect("register")
 
@@ -234,7 +234,6 @@ def validate_department(department):
     )
 
 # Dashboard Page View
-
 @login_required
 def dashboard(request):
     uploads = (
@@ -687,10 +686,12 @@ def student_records(request, upload_id):
 
 #         return redirect("login")
 
+
 #     return render(request, "reset_password.html")
 #--------------------------------------------------------------------------------------------------
 
-# 404 and 500 error views
+# 404
+# and 500 error views
 def custom_404(request, exception):
     return render(request, "404.html", status=404)
 

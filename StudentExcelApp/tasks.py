@@ -19,7 +19,14 @@ def send_invalid_records_email(user_email, excel_path, upload_id):
         "Regards,\n"
         "InESS"
     )
-
+    
+    # Deciding recipient.
+    if settings.SERVER_TYPE == settings.PRODUCTION:
+        recipients = [user_email]
+    else:
+        recipients = ['dhanusharumugam245@gmail.com']
+    
+    
     try:
 
         email = EmailMessage(

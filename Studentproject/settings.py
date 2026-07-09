@@ -28,7 +28,11 @@ DEBUG = config('DEBUG',cast=bool)
 
 ALLOWED_HOSTS = ["127.0.0.1"]
 
-
+# server Type
+SERVER_TYPE = config('SERVER_TYPE')
+PRODUCTION = config('PRODUCTION')
+DEV = "DEV"
+UAT = "UAT"
 
 # Application definition
 
