@@ -21,7 +21,6 @@ class HistoricalStudentAdmin(admin.ModelAdmin):
     list_display = (
         "history_date",
         "history_type",
-        "history_user",
         "studentid",
         "studentname",
         "email",
@@ -44,8 +43,14 @@ class HistoricalStudentAdmin(admin.ModelAdmin):
 class LoginHistoryAdmin(admin.ModelAdmin):
     list_display = (
         "username",
+        "status",
         "login_time",
         "logout_time",
     )
-    search_fields = ("username",)
-    list_filter = ("login_time",)
+    list_filter = (
+        "status",
+        "login_time",
+    )
+    search_fields = (
+        "username",
+    )

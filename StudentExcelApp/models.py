@@ -65,18 +65,34 @@ class EmailLog(models.Model):
 
 # Login and logout log model.
 class LoginHistory(models.Model):
+    STATUS_CHOICES = (
+        ("SUCCESS", "Success"),
+        ("FAILED", "Failed"),
+    )
+
     user = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
         null=True,
         blank=True
     )
+
     username = models.CharField(max_length=150)
     login_time = models.DateTimeField(auto_now_add=True)
     logout_time = models.DateTimeField(null=True, blank=True)
+
+    status = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default="SUCCESS"
+    )
+    
+    failure_reason = models.CharField(
+    max_length=255,
+    blank=True)
 
     class Meta:
         ordering = ["-login_time"]
 
     def __str__(self):
-        return f"{self.username} - {self.login_time}"
+        return f"{self.username} - {self.status}"

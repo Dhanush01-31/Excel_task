@@ -91,7 +91,8 @@ def login_page(request):
                 return redirect(next_url)
 
             return redirect("dashboard")
-
+        
+        LoginHistory.objects.create(username=login_input,status="FAILED",failure_reason="Invalid username or password")
         messages.error(request, "Invalid Email or Password.")
     
     return render(request, "login.html")
@@ -450,24 +451,20 @@ def dashboard(request):
 
 
 # Logout View
-@login_required(login_url='login')
+@login_required(login_url="login")
 def logout_view(request):
 
-    if request.user.is_authenticated:
+    history = LoginHistory.objects.filter(
+        user=request.user,
+        logout_time__isnull=True
+    ).first()
 
-        history = LoginHistory.objects.filter(
-            user=request.user,
-            logout_time__isnull=True
-        ).last()
-
-        if history:
-            history.logout_time = timezone.now()
-            history.save()
+    if history:
+        history.logout_time = timezone.now()
+        history.save(update_fields=["logout_time"])
 
     logout(request)
-
     messages.success(request, "Logged out Successfully.")
-
     return redirect("home")
 
 # update view.

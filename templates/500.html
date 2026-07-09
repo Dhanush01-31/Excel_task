@@ -6,10 +6,6 @@
 <body>
     <h1>500 - Internal Server Error</h1>
     <p>Something went wrong. Please try again later.</p>
-    {% if not user.is_authenticated %}
-        <a href="{% url 'login' %}">Go to Home</a>
-    {% else %}
-        <a href="{% url 'dashboard' %}">Go Back</a>
-    {% endif %}
+    <a href="{% url 'login' %}">Go to Home</a>
 </body>
 </html>
