@@ -17,7 +17,6 @@ class Student(models.Model):
         on_delete=models.CASCADE,
         related_name="students"
     )
-
     studentid = models.CharField(max_length=20)
     studentname = models.CharField(max_length=100)
     email = models.EmailField()

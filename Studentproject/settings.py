@@ -7,6 +7,7 @@ For more information on this file, see
 https://docs.djangoproject.com/en/6.0/topics/settings/
 
 For the full list of settings and their values, see
+
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
@@ -26,7 +27,7 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG',cast=bool)
 
-ALLOWED_HOSTS = ["127.0.0.1"]
+ALLOWED_HOSTS = ["127.0.0.1",'localhost']
 
 # server Type
 SERVER_TYPE = config('SERVER_TYPE')

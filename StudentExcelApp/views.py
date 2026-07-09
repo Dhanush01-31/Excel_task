@@ -93,7 +93,7 @@ def login_page(request):
             return redirect("dashboard")
 
         messages.error(request, "Invalid Email or Password.")
-
+    
     return render(request, "login.html")
 
 # Register Page VIew
@@ -234,7 +234,7 @@ def validate_department(department):
     )
 
 # Dashboard Page View
-@login_required
+@login_required(login_url='login')
 def dashboard(request):
     uploads = (
     UploadFile.objects.filter(uploaded_by=request.user)
@@ -450,6 +450,7 @@ def dashboard(request):
 
 
 # Logout View
+@login_required(login_url='login')
 def logout_view(request):
 
     if request.user.is_authenticated:
@@ -472,7 +473,7 @@ def logout_view(request):
 # update view.
 from django.shortcuts import get_object_or_404
 
-@login_required
+@login_required(login_url='login')
 def update_student(request, id):
     
     student = get_object_or_404(Student, id=id)
@@ -545,7 +546,7 @@ def update_student(request, id):
         return redirect("student_records", upload_id=student.upload.id)
 
 # delete view.
-@login_required
+@login_required(login_url='login')
 def delete_student(request, id):
 
     student = get_object_or_404(Student, id=id)
@@ -563,7 +564,7 @@ def delete_student(request, id):
     return redirect("dashboard")
 
 # student records view.
-@login_required
+@login_required(login_url='login')
 def student_records(request, upload_id):
 
     upload = get_object_or_404(
@@ -699,7 +700,7 @@ def custom_500(request):
     return render(request, "500.html", status=500)
 
 # downlaod_template view
-@login_required
+@login_required(login_url='login')
 def download_template(request):
     file_path = Path(settings.BASE_DIR) / "resources" / "Student_Template.xlsx"
 
