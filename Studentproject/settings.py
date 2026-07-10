@@ -32,6 +32,7 @@ ALLOWED_HOSTS = ["127.0.0.1",'localhost']
 # server Type
 SERVER_TYPE = config('SERVER_TYPE')
 PRODUCTION = config('PRODUCTION')
+
 DEV = "DEV"
 UAT = "UAT"
 
