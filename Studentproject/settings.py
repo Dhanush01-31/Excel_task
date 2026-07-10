@@ -10,13 +10,12 @@ For the full list of settings and their values, see
 
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
-
+import urllib.parse
 from pathlib import Path
 import os
 from decouple import config
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
@@ -27,14 +26,10 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG',cast=bool)
 
-ALLOWED_HOSTS = ["127.0.0.1",'localhost']
+ALLOWED_HOSTS = [host.strip() for host in config('ALLOWED_HOST',"").split(",") if host.strip() ]
 
 # server Type
 SERVER_TYPE = config('SERVER_TYPE')
-PRODUCTION = config('PRODUCTION')
-
-DEV = "DEV"
-UAT = "UAT"
 
 # Application definition
 
@@ -81,7 +76,20 @@ WSGI_APPLICATION = 'Studentproject.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-DATABASES = {
+if SERVER_TYPE == "DEMO":
+    url = urllib.parse.urlparse(config('DATABASE_URL'))
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": url.path.lstrip("/"),
+            "USER": url.username,
+            "PASSWORD": url.password,
+            "HOST": url.hostname,
+            "PORT": url.port,
+        }
+    }
+else:
+    DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': config('DB_NAME'),
@@ -168,9 +176,9 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # celery Settings
 
-CELERY_BROKER_URL = config("CELERY_BROKER_URL", default="redis://127.0.0.1:6379/0")
+CELERY_BROKER_URL = config("CELERY_BROKER_URL")
 
-CELERY_RESULT_BACKEND = config("CELERY_RESULT_BACKEND", default="redis://127.0.0.1:6379/1")
+CELERY_RESULT_BACKEND = config("CELERY_RESULT_BACKEND")
 
 CELERY_ACCEPT_CONTENT = ["json"]
 
