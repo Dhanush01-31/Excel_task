@@ -33,7 +33,7 @@ def send_invalid_records_email(user_email, excel_path, upload_id):
             subject=subject,
             body=body,
             from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[user_email],
+            to=recipients,
         )
 
         email.attach_file(excel_path)

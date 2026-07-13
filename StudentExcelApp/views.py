@@ -400,6 +400,7 @@ def dashboard(request):
         if invalid_rows:
 
             error_df = pd.DataFrame(invalid_rows)
+           
             temp_dir = os.path.join(tempfile.gettempdir(), "error_reports")
             
             os.makedirs(temp_dir, exist_ok=True)
